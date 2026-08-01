@@ -1,0 +1,20 @@
+server:
+  port: 8080 #set port for ur application
+
+spring:
+  profiles:
+    active: db
+  datasource:
+    url: jdbc:h2:mem:apiDelayDb;DB_CLOSE_DELAY=-1 #url for h2 database in memory mode
+    driver-class-name: org.h2.Driver #driver acts a bridge bw java application and database
+    username: sa
+    password:
+    platform: h2
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update #auto updates or creates db schema based on entity class
+    show-sql: true #enables logging of sql queries generated ny jpa
+    database-platform: org.hibernate.dialect.H2Dialect

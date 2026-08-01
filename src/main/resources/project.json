@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "name": "Payment Monitoring",
+    "description": "Monitors payment APIs",
+    "createdAt": "2026-01-15T09:30:00",
+    "owner": {
+      "id": 1
+    }
+  },
+  {
+    "id": 2,
+    "name": "Inventory Service",
+    "description": "Tracks inventory service health",
+    "createdAt": "2026-02-20T14:45:10",
+    "owner": {
+      "id": 2
+    }
+  },
+  {
+    "id": 3,
+    "name": "Authentication System",
+    "description": "Monitors login and authentication APIs",
+    "createdAt": "2025-12-05T18:20:35",
+    "owner": {
+      "id": 3
+    }
+  },
+  {
+    "id": 4,
+    "name": "Notification Hub",
+    "description": "Tracks email and SMS delivery services",
+    "createdAt": "2026-04-11T08:10:25",
+    "owner": {
+      "id": 4
+    }
+  },
+  {
+    "id": 5,
+    "name": "Analytics Engine",
+    "description": "Collects application metrics and reports",
+    "createdAt": "2025-09-28T16:55:40",
+    "owner": {
+      "id": 5
+    }
+  },
+  {
+    "id": 6,
+    "name": "Order Processing",
+    "description": "Monitors order lifecycle and failures",
+    "createdAt": "2026-05-19T11:40:15",
+    "owner": {
+      "id": 1
+    }
+  },
+  {
+    "id": 7,
+    "name": "User Management",
+    "description": "Tracks user registration and profile services",
+    "createdAt": "2026-06-07T13:25:55",
+    "owner": {
+      "id": 2
+    }
+  },
+  {
+    "id": 8,
+    "name": "API Gateway",
+    "description": "Monitors gateway routing and request handling",
+    "createdAt": "2025-11-14T20:05:30",
+    "owner": {
+      "id": 3
+    }
+  }
+]
