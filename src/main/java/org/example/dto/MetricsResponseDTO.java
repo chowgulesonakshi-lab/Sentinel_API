@@ -3,7 +3,6 @@ package org.example.dto;
 import lombok.Data;
 import org.example.entity.Metrics;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data

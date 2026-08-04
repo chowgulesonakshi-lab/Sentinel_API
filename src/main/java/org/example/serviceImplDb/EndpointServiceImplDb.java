@@ -5,8 +5,10 @@ import org.example.dto.EndpointRequestDTO;
 import org.example.dto.EndpointResponseDTO;
 import org.example.entity.ApiService;
 import org.example.entity.Endpoint;
+import org.example.repository.AlertsRepository;
 import org.example.repository.ApiServiceRepository;
 import org.example.repository.EndpointRepository;
+import org.example.repository.MetricRepository;
 import org.example.service.EndpointService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
@@ -21,6 +23,8 @@ import java.util.Optional;
 public class EndpointServiceImplDb implements EndpointService {
     private final EndpointRepository endpointRepository;
     private final ApiServiceRepository apiServiceRepository;
+    private final AlertsRepository alertsRepository;
+    private final MetricRepository metricRepository;
 
     private EndpointResponseDTO mapToDTO(Endpoint endpoint) {
         EndpointResponseDTO dto = new EndpointResponseDTO();
@@ -89,7 +93,10 @@ public class EndpointServiceImplDb implements EndpointService {
     @Override
     public void deleteEndpoint(Long id) {
         Endpoint endpoint = endpointRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Endpoint not found"));
+                .orElseThrow(() -> new RuntimeException("Endpoint not found"));
+
+        alertsRepository.deleteByEndpoint(endpoint);
+        metricRepository.deleteByEndpoint(endpoint);
         endpointRepository.delete(endpoint);
     }
 

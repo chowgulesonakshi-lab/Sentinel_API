@@ -4,12 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.example.dto.ApiHealthDTO;
 import org.example.dto.DashboardResponseDTO;
 import org.example.dto.MetricsResponseDTO;
+import org.example.entity.Alerts;
 import org.example.entity.Endpoint;
 import org.example.entity.Metrics;
-import org.example.repository.ApiServiceRepository;
-import org.example.repository.EndpointRepository;
-import org.example.repository.MetricRepository;
-import org.example.repository.ProjectRepository;
+import org.example.repository.*;
 import org.example.service.DashboardService;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +21,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final ApiServiceRepository apiServiceRepository;
     private final EndpointRepository endpointRepository;
     private final MetricRepository metricRepository;
+    private final AlertsRepository alertsRepository;
 
 
     @Override
@@ -41,6 +40,11 @@ public class DashboardServiceImpl implements DashboardService {
         response.setAverageResponseTime(avg!=null ? avg:0.0);
 
         response.setLastHealthCheck(metricRepository.getLastHealthCheck());
+        List<Alerts> activeAlerts =
+                alertsRepository.findByResolvedFalse();
+        response.setAlerts(activeAlerts);
+        response.setActiveAlerts(activeAlerts.size());
+
         return response;
     }
 
