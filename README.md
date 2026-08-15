@@ -1,7 +1,7 @@
 # 🚀 Sentinel API Monitoring Dashboard
 
 > **Monitor. Analyze. Optimize.**
->
+
 > Sentinel is a full-stack API Monitoring Dashboard that helps developers and organizations monitor API availability, response time, uptime, and overall health through an intuitive and interactive dashboard.
 
 ---
@@ -23,10 +23,41 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Protected Routes
 - Session Management
 
+<img width="1899" height="899" alt="Screenshot 2026-08-15 195737" src="https://github.com/user-attachments/assets/0b7b8032-9ef5-4f58-addb-7034ba111903" />
+
+
+### 📊 Real-Time Dashboard 
+
+- Health Overview
+- Performance Analytics
+- Projects & Services
+- Endpoint Management
+- Statistics Cards
+- Slow API Detection
+- Alert Management
+- AI Incident Analysis
+- Dark Mode
+
+<img width="1868" height="890" alt="Screenshot 2026-08-15 201008" src="https://github.com/user-attachments/assets/39f5194e-d224-4a7f-8865-6a1b7a0574a1" />
+
+  
 ### 📁 Project Management
 - Create multiple monitoring projects
 - Organize APIs by project
 - Edit and Delete projects
+
+<img width="1905" height="898" alt="Screenshot 2026-08-15 200820" src="https://github.com/user-attachments/assets/0dcc8fca-37e8-4eaa-8baa-906cfa8b6447" />
+
+
+### 🔧 Service Management
+- Create and manage API services within projects
+- Group services based on their associated project
+- Add, update, and delete services
+- Monitor the health and performance of each service
+- Easily navigate between projects and their services
+
+<img width="1886" height="912" alt="Screenshot 2026-08-15 200838" src="https://github.com/user-attachments/assets/69226356-2763-49be-afe0-a785ce573096" />
+
 
 ### 🌐 Endpoint Management
 - Add API endpoints
@@ -36,18 +67,19 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Edit endpoint details
 - Delete endpoints
 
-### 📊 Real-Time Dashboard
-- API Health Overview
-- Total APIs
-- Healthy APIs
-- Down APIs
-- Unknown Status APIs
+<img width="1898" height="901" alt="Screenshot 2026-08-15 200854" src="https://github.com/user-attachments/assets/c0dced02-9038-4412-89de-fb6fd851f8a2" />
 
-### 📈 Performance Analytics
-- Response Time Charts
-- Performance Trends
-- Historical Metrics
-- Visual Dashboard Cards
+
+### 📊 Metrics Management
+- Track API response time and performance metrics
+- Monitor request success and failure rates
+- View historical performance data through interactive charts
+- Analyze response time trends for monitored endpoints
+- Identify slow-performing APIs and endpoints
+- Monitor overall API health and availability
+
+<img width="1874" height="902" alt="Screenshot 2026-08-15 200916" src="https://github.com/user-attachments/assets/af56926f-85a4-40d9-975a-0054c01d80ef" />
+
 
 ### 🚨 Alert Management
 - API Failure Detection
@@ -55,11 +87,17 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Status Monitoring
 - Alert History
 
-### 🎨 Modern UI
-- Responsive Design
-- Dark Mode
-- Clean Dashboard Layout
-- Interactive Charts
+<img width="1875" height="903" alt="Screenshot 2026-08-15 201141" src="https://github.com/user-attachments/assets/32bd2a5e-7844-4b7e-9079-a0e7e06ce05c" />
+
+
+### 🤖 AI Features
+
+- AI-powered anomaly detection
+- Failure prediction using historical metrics
+- Intelligent API health insights
+- Root cause suggestions
+- Performance optimization recommendations
+
 
 ---
 
@@ -191,20 +229,6 @@ Port : 5173
 
 ---
 
-# 📸 Screenshots
-
-> Add screenshots of the following pages.
-
-- Login
-- Signup
-- Dashboard
-- Project Page
-- Endpoint Management
-- Dark Theme
-- Performance Chart
-
----
-
 # 🚀 Upcoming Features
 
 ### 🔔 Smart Notifications
@@ -231,43 +255,6 @@ Port : 5173
 - API Trends
 - Failure Prediction
 - Response Time Comparison
-
----
-
-### 🤖 AI Features
-
-- AI-powered anomaly detection
-- Failure prediction using historical metrics
-- Intelligent API health insights
-- Root cause suggestions
-- Performance optimization recommendations
-
----
-
-### ☁ Deployment
-
-- Docker Support
-- Docker Compose
-- Kubernetes Deployment
-- AWS Deployment Guide
-
----
-
-### 👥 Team Collaboration
-
-- Multiple Users
-- Role-Based Access Control (RBAC)
-- Organization Workspaces
-- Team Invitations
-
----
-
-### 📂 Export & Reports
-
-- Export CSV
-- Export PDF
-- Performance Reports
-- Health Reports
 
 ---
 
@@ -341,26 +328,6 @@ Contributions are welcome!
 3. Commit your changes.
 4. Push your branch.
 5. Open a Pull Request.
-
----
-
-# 📝 Roadmap
-
-- [x] User Authentication
-- [x] Project Management
-- [x] Endpoint Management
-- [x] Dashboard
-- [x] Charts
-- [x] Alerts
-- [x] Dark Mode
-- [ ] Email Notifications
-- [ ] AI Insights
-- [ ] Docker Support
-- [ ] PostgreSQL
-- [ ] Kubernetes
-- [ ] Team Collaboration
-- [ ] Export Reports
-- [ ] Multi-Environment Monitoring
 
 ---
 
