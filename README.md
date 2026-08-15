@@ -23,10 +23,9 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Protected Routes
 - Session Management
 
-<img width="1899" height="899" alt="Screenshot 2026-08-15 195737" src="https://github.com/user-attachments/assets/0b7b8032-9ef5-4f58-addb-7034ba111903" />
+![Authentication](./screenshots/authentication.png)
 
-
-### 📊 Real-Time Dashboard 
+### 📊 Real-Time Dashboard
 
 - Health Overview
 - Performance Analytics
@@ -38,16 +37,14 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - AI Incident Analysis
 - Dark Mode
 
-<img width="1868" height="890" alt="Screenshot 2026-08-15 201008" src="https://github.com/user-attachments/assets/39f5194e-d224-4a7f-8865-6a1b7a0574a1" />
+![Dashboard](./screenshots/dashboard.png)
 
-  
 ### 📁 Project Management
 - Create multiple monitoring projects
 - Organize APIs by project
 - Edit and Delete projects
 
-<img width="1905" height="898" alt="Screenshot 2026-08-15 200820" src="https://github.com/user-attachments/assets/0dcc8fca-37e8-4eaa-8baa-906cfa8b6447" />
-
+![Project Management](./screenshots/projects.png)
 
 ### 🔧 Service Management
 - Create and manage API services within projects
@@ -56,8 +53,7 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Monitor the health and performance of each service
 - Easily navigate between projects and their services
 
-<img width="1886" height="912" alt="Screenshot 2026-08-15 200838" src="https://github.com/user-attachments/assets/69226356-2763-49be-afe0-a785ce573096" />
-
+![Service Management](./screenshots/services.png)
 
 ### 🌐 Endpoint Management
 - Add API endpoints
@@ -67,8 +63,7 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Edit endpoint details
 - Delete endpoints
 
-<img width="1898" height="901" alt="Screenshot 2026-08-15 200854" src="https://github.com/user-attachments/assets/c0dced02-9038-4412-89de-fb6fd851f8a2" />
-
+![Endpoint Management](./screenshots/endpoints.png)
 
 ### 📊 Metrics Management
 - Track API response time and performance metrics
@@ -78,8 +73,7 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Identify slow-performing APIs and endpoints
 - Monitor overall API health and availability
 
-<img width="1874" height="902" alt="Screenshot 2026-08-15 200916" src="https://github.com/user-attachments/assets/af56926f-85a4-40d9-975a-0054c01d80ef" />
-
+![Metrics Management](./screenshots/metrics.png)
 
 ### 🚨 Alert Management
 - API Failure Detection
@@ -87,7 +81,7 @@ Whether you're testing your own APIs or monitoring production services, Sentinel
 - Status Monitoring
 - Alert History
 
-<img width="1875" height="903" alt="Screenshot 2026-08-15 201141" src="https://github.com/user-attachments/assets/32bd2a5e-7844-4b7e-9079-a0e7e06ce05c" />
+![Alerts Management](./screenshots/alerts.png)
 
 
 ### 🤖 AI Features
