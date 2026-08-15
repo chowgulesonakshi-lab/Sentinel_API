@@ -37,12 +37,7 @@ public class AuthServiceImpl implements AuthService {
 
         AppUser savedUser = userService.saveUser(appUser);
         demoWorkspaceService.createDemoWorkspace(savedUser);
-
-        LoginRequestDTO loginRequestDTO = new LoginRequestDTO();
-        loginRequestDTO.setEmail(appUserDTO.getEmail());
-        loginRequestDTO.setPassword(appUserDTO.getPassword());
-
-        return loginUser(loginRequestDTO);
+        return new LoginResponseDTO(null, "Success");
     }
 
     @Override

@@ -6,6 +6,7 @@ import {
     deleteEndpoint
 } from "../services/endpointsService";
 
+import { FolderKanban, Package, ChevronDown, ChevronRight, Circle } from "lucide-react";
 function Endpoints() {
 
     const [endpoints, setEndpoints] = useState([]);
@@ -144,12 +145,27 @@ function Endpoints() {
                                 className="w-full flex justify-between items-center px-6 py-4"
                             >
 
-                                <h2 className="text-xl font-bold text-blue-600">
-                                    🌐 {projectName}
+                                <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                                    <FolderKanban size={20} strokeWidth={1.8} />
+                                    {projectName}
                                 </h2>
 
-                                <span className="text-xl">
-                                    {expandedProjects[projectName] ? "▼" : "▶"}
+                                <span
+                                    className="w-8 h-8 rounded-full
+                                    bg-slate-100 dark:bg-slate-800
+                                    border border-slate-200 dark:border-slate-700
+                                    flex items-center justify-center
+                                    text-slate-500 dark:text-slate-300
+                                    hover:bg-slate-200 dark:hover:bg-slate-700
+                                    transition-all duration-200"
+                                >
+                                    <ChevronRight
+                                        size={17}
+                                        strokeWidth={2}
+                                        className={`transition-transform duration-200 ${
+                                            expandedProjects[projectName] ? "rotate-90" : ""
+                                        }`}
+                                    />
                                 </span>
 
                             </button>
@@ -186,23 +202,21 @@ function Endpoints() {
                                                         className="w-full flex justify-between items-center py-3"
                                                     >
 
-                                                        <h3 className="font-semibold text-slate-800 dark:text-white">
+                                                        <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                                                            <Package size={18} strokeWidth={1.8} />
+                                                            {serviceName}
 
-                                                            📦 {serviceName}
-                                                            <span className="text-slate-400 ml-2">
+                                                            <span className="text-slate-400 ml-1">
                                                                 ({endpointList.length})
                                                             </span>
-
                                                         </h3>
 
-                                                        <span>
-
-                                                            {expandedServices[
-                                                                serviceKey
-                                                            ]
-                                                                ? "▼"
-                                                                : "▶"}
-
+                                                        <span className="text-slate-400">
+                                                            {expandedServices[serviceKey] ? (
+                                                                <ChevronDown size={18} />
+                                                            ) : (
+                                                                <ChevronRight size={18} />
+                                                            )}
                                                         </span>
 
                                                     </button>
@@ -235,15 +249,18 @@ function Endpoints() {
                                                                         </div>
 
                                                                         <span
-                                                                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                                            className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 w-fit ${
                                                                                 endpoint.enabled
-                                                                                    ? "bg-emerald-100 text-emerald-700"
-                                                                                    : "bg-red-100 text-red-700"
+                                                                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                                                                                    : "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400"
                                                                             }`}
                                                                         >
-                                                                            {endpoint.enabled
-                                                                                ? "🟢 Enabled"
-                                                                                : "🔴 Disabled"}
+                                                                            <Circle
+                                                                                size={7}
+                                                                                fill="currentColor"
+                                                                                strokeWidth={0}
+                                                                            />
+                                                                            {endpoint.enabled ? "Enabled" : "Disabled"}
                                                                         </span>
 
                                                                     </div>

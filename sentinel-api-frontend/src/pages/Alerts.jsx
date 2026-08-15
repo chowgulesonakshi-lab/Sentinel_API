@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getAllAlerts } from "../services/alertsService";
+import axios from "axios";
+import { Sparkles, TriangleAlert, Activity } from "lucide-react";
 
 function Alerts() {
 
     const [alerts, setAlerts] = useState([]);
     const [showAll, setShowAll] = useState(false);
+    const [aiAnalysis, setAiAnalysis] = useState({});
+    const [analyzingAlert, setAnalyzingAlert] = useState(null);
+    const [openAnalysis, setOpenAnalysis] = useState(null);
 
     useEffect(() => {
         loadAlerts();
@@ -14,12 +19,9 @@ function Alerts() {
     const loadAlerts = async () => {
         try {
             const data = await getAllAlerts();
-
             console.log(data);
             console.log(
-                data.filter(alert => !alert.resolved)
-            );
-
+                data.filter(alert => !alert.resolved));
             setAlerts(data);
         } catch (err) {
             console.error("ALERT ERROR:", err);
@@ -28,48 +30,59 @@ function Alerts() {
 
     const activeAlerts = alerts.filter(alert => !alert.resolved);
 
+    const analyzeAlert = async(alertId) =>{
+        if (aiAnalysis[alertId]) {
+                setOpenAnalysis(openAnalysis === alertId ? null:alertId);
+                 return;
+            }
+        setAnalyzingAlert(alertId);
+        try{
+            const response = await axios.post(`http://localhost:8080/ai/analyze/${alertId}`);
+            console.log("AI Analysis:", response.data);
+            setAiAnalysis(prev=> ({
+                ...prev,
+                [alertId]: response.data
+                }));
+            setOpenAnalysis(alertId);
+            }
+        catch(error){
+            console.error("AI Analysis failed: ", error);
+        }
+        finally{
+            setAnalyzingAlert(null);
+            }
+        };
+
     return (
         <MainLayout>
-
             <div className="space-y-6">
-
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                         Alerts
                     </h1>
-
                     <p className="text-slate-500 dark:text-slate-400 mt-2">
                         Monitor API failures and performance issues
                     </p>
                 </div>
 
                 <div className="rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-
                     <div className="flex justify-between items-center mb-5">
-
                         <h2 className="text-lg font-semibold text-slate-800 dark:text-white">
                             Active Alerts
                         </h2>
-
                         <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-sm">
                             {activeAlerts.length}
                         </span>
-
                     </div>
 
                     <div className="space-y-3">
-
                         {activeAlerts.length === 0 ? (
-
                             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                                 No active alerts
                             </div>
-
                         ) : (
-
                             (showAll ? activeAlerts : activeAlerts.slice(0, 4))
                                 .map((alert, index) => (
-
                                     <div
                                         key={alert.id}
                                         className={`p-4 rounded-xl border ${
@@ -78,13 +91,10 @@ function Alerts() {
                                                 : "bg-yellow-500/5 border-yellow-500/20"
                                         }`}
                                     >
-
                                         <div className="flex justify-between items-center mb-2">
-
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 ID: {alert.id}
                                             </p>
-
                                             <span
                                                 className={`text-sm font-semibold ${
                                                     alert.severity === "CRITICAL"
@@ -94,13 +104,10 @@ function Alerts() {
                                             >
                                                 {alert.severity}
                                             </span>
-
                                         </div>
-
                                         <p className="font-medium text-slate-800 dark:text-white">
                                             {alert.endpointUrl}
                                         </p>
-
                                         <p
                                             className={`text-sm mt-2 ${
                                                 alert.severity === "CRITICAL"
@@ -110,38 +117,76 @@ function Alerts() {
                                         >
                                             {alert.message}
                                         </p>
-
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                                             {alert.type.replace("_", " ")}
                                         </p>
+                                        <div className="flex justify-end mt-3">
+                                            <button
+                                                onClick={() => analyzeAlert(alert.id)}
+                                                disabled={analyzingAlert === alert.id}
+                                                className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-300
+                                                hover:text-indigo-700 dark:hover:text-indigo-200 hover:underline
+                                                underline-offset-4 transition-colors disabled:opacity-50"
+                                            >
+                                                {analyzingAlert === alert.id ? (
+                                                        "Analyzing..."
+                                                    ) : aiAnalysis[alert.id] && openAnalysis === alert.id ? (
+                                                        "Hide AI Analysis"
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles size={13} strokeWidth={2} className="shrink-0" />
+                                                            <span>Analyze with AI</span>
+                                                        </>
+                                                    )}
+                                            </button>
+                                        </div>
+                                        {aiAnalysis[alert.id] && openAnalysis === alert.id && (
+                                            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700">
+                                                <p className="inline-flex items-center gap-1 text-sm font-semibold text-slate-800 dark:text-white">
+                                                    <>
+                                                           <Sparkles size={13} strokeWidth={2} className="shrink-0" />
+                                                           <span>Sentinel AI Analysis</span>
+                                                    </>
+                                                </p>
 
+                                                <p className="text-sm mt-2 text-slate-600 dark:text-slate-300">
+                                                    <span className="font-medium">Summary:</span>{" "}
+                                                    {aiAnalysis[alert.id].summary}
+                                                </p>
+
+                                                <p className="text-sm mt-2 text-slate-600 dark:text-slate-300">
+                                                    <span className="font-medium">Likely Cause:</span>{" "}
+                                                    {aiAnalysis[alert.id].likelyCause}
+                                                </p>
+
+                                                <p className="text-sm mt-2 text-slate-600 dark:text-slate-300">
+                                                    <span className="font-medium">Recommendation:</span>{" "}
+                                                    {aiAnalysis[alert.id].recommendation}
+                                                </p>
+
+                                                <p className="text-xs mt-2 text-slate-500 dark:text-slate-400">
+                                                    Confidence: {aiAnalysis[alert.id].confidence}%
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
 
                                 ))
-
                         )}
-
                     </div>
 
                     {activeAlerts.length > 4 && (
-
                         <div className="flex justify-center mt-5">
-
                             <button
                                 onClick={() => setShowAll(!showAll)}
                                 className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                             >
                                 {showAll ? "View Less" : "View More"}
                             </button>
-
                         </div>
-
                     )}
-
                 </div>
-
             </div>
-
         </MainLayout>
     );
 }

@@ -3,6 +3,7 @@ import MainLayout from "../layouts/MainLayout";
 import { getServices, updateService, deleteService, getServicesByProject  } from "../services/apiServiceService";
 import ServiceModal from "../components/ServiceComponents/ServiceModal";
 import { useSearchParams } from "react-router-dom";
+import { FolderKanban, Circle } from "lucide-react";
 
 function Services() {
     const [searchParams] = useSearchParams();
@@ -98,8 +99,9 @@ function Services() {
                                 <div key={projectName}>
                                     <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 mb-6">
                                         <div>
-                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                                    🌐  {projectName}
+                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                <FolderKanban size={22} strokeWidth={1.8} />
+                                                {projectName}
                                             </h2>
                                             <p className="text-slate-500 dark:text-slate-400">
                                                 {projectServices.length} Services
@@ -123,13 +125,18 @@ function Services() {
                                                         </p>
                                                     </div>
                                                     <span
-                                                        className={`text-xs font-medium px-3 py-1 rounded-full ${
+                                                        className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1 w-fit ${
                                                             service.status === "ACTIVE"
-                                                                ? "bg-emerald-100 text-emerald-600"
-                                                                : "bg-red-100 text-red-600"
+                                                                ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+                                                                : "bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400"
                                                         }`}
                                                     >
-                                                        ● {service.status}
+                                                        <Circle
+                                                            size={7}
+                                                            fill="currentColor"
+                                                            strokeWidth={0}
+                                                        />
+                                                        {service.status}
                                                     </span>
                                                 </div>
                                                 <div className="mt-5 space-y-2 text-sm text-slate-600 dark:text-slate-400">

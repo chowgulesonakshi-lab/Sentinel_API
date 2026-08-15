@@ -57,7 +57,8 @@ public class SecurityConfig {
                                 "/services/**",
                                 "/endpoints/**",
                                 "/metrics/**",
-                                "/alerts/**"
+                                "/alerts/**",
+                                "/ai/**"
                         ).permitAll()
                         .anyRequest().authenticated())
                 .headers(headers-> headers.frameOptions(frame-> frame.disable()))

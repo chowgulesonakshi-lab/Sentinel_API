@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface MetricRepository extends JpaRepository<Metrics, Long> {
     List<Metrics> findByEndpointId(Long endpointId);
+    List<Metrics> findTop10ByEndpointIdOrderByTimeStampDesc(Long endpointId);
     List<Metrics> findByResponseTimeGreaterThan(double responseTime);
     List<Metrics> findByStatusCode(int statusCode);
     List<Metrics> findTop10ByOrderByTimeStampDesc();
