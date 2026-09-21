@@ -37,8 +37,7 @@ function Projects() {
     };
 
     const handleDeleteProject = async (id) => {
-        console.log("Deleting project:", id);
-        const confirmDelete = window.confirm("Are you sure you want to delete this project?");
+        const confirmDelete = window.confirm("Are you sure you want to delete this project? All associated services, endpoints, metrics, and alerts will also be deleted.");
         if (!confirmDelete) return;
         try {
             await deleteProject(id);
@@ -48,6 +47,7 @@ function Projects() {
             console.log("Status:", error.response?.status);
             console.log("Response:", error.response?.data);
             console.error(error);
+            alert("Failed to delete project: " + (error.response?.data?.message || error.message));
         }
     };
 

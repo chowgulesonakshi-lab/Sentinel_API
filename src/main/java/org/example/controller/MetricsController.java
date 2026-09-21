@@ -80,4 +80,9 @@ public class MetricsController {
     public ResponseEntity<Long> getFailedChecksCount() {
         return ResponseEntity.ok(metricsService.getFailedChecksCount());
     }
+
+    @GetMapping("/slow-count")
+    public ResponseEntity<Long> getSlowApisCount() {
+        return ResponseEntity.ok(metricsService.getSlowApisCount());
+    }
 }

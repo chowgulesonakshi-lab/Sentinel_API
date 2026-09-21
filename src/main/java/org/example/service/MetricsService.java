@@ -19,6 +19,7 @@ public interface MetricsService {
 
     long getUpCount();
     long getDownCount();
+    long getSlowApisCount();
 
     long getFailedChecksCount();
     Double getAverageResponseTime();

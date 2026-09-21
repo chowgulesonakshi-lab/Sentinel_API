@@ -3,16 +3,20 @@ package org.example.serviceImplDb;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.ProjectRequestDTO;
 import org.example.dto.ProjectResponseDTO;
+import org.example.entity.ApiService;
 import org.example.entity.AppUser;
 import org.example.entity.Project;
+import org.example.repository.ApiServiceRepository;
 import org.example.repository.AppUserRepository;
 import org.example.repository.ProjectRepository;
+import org.example.service.ApiService_Service;
 import org.example.service.ProjectService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,9 +25,12 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Profile("db")
+@Transactional
 public class ProjectServiceImplDb implements ProjectService {
     private final ProjectRepository projectRepository;
     private final AppUserRepository appUserRepository;
+    private final ApiServiceRepository apiServiceRepository;
+    private final ApiService_Service apiServiceService;
 
     private ProjectResponseDTO mapToDTO(Project project){
         ProjectResponseDTO dto = new ProjectResponseDTO();
@@ -86,10 +93,17 @@ public class ProjectServiceImplDb implements ProjectService {
     }
 
     @Override
+    @Transactional
     public void deleteProject(Long id) {
-       Project project = projectRepository.findById(id)
-               .orElseThrow(()-> new RuntimeException("Project Not Found"));
-       projectRepository.delete(project);
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project Not Found"));
+
+        List<ApiService> services = apiServiceRepository.findByProjectId(id);
+        for (ApiService service : services) {
+            apiServiceService.deleteService(service.getId());
+        }
+
+        projectRepository.delete(project);
     }
 
     @Override

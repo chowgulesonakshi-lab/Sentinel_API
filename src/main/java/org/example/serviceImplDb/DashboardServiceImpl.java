@@ -31,10 +31,8 @@ public class DashboardServiceImpl implements DashboardService {
         response.setTotalApiServices(apiServiceRepository.count());
         response.setTotalEndpoints(endpointRepository.count());
 
-        response.setSuccessfulChecks(metricRepository
-                .countByStatus(Metrics.HealthStatus.UP));
-        response.setFailedChecks(metricRepository
-                .countByStatus(Metrics.HealthStatus.DOWN));
+        response.setSuccessfulChecks(metricRepository.countLatestByStatus(Metrics.HealthStatus.UP));
+        response.setFailedChecks(metricRepository.countLatestByStatus(Metrics.HealthStatus.DOWN));
 
         Double avg = metricRepository.getAverageResponseTime();
         response.setAverageResponseTime(avg!=null ? avg:0.0);

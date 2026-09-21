@@ -5,12 +5,16 @@ import org.example.dto.ApiServiceRequestDTO;
 import org.example.dto.ApiServiceResponseDTO;
 import org.example.entity.ApiService;
 import org.example.entity.Project;
+import org.example.entity.Endpoint;
 import org.example.repository.ApiServiceRepository;
+import org.example.repository.EndpointRepository;
 import org.example.repository.ProjectRepository;
 import org.example.service.ApiService_Service;
+import org.example.service.EndpointService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,9 +22,12 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Profile("db")
+@Transactional
 public class ApiServiceImplDb implements ApiService_Service {
     private final ApiServiceRepository apiServiceRepository;
     private final ProjectRepository projectRepository;
+    private final EndpointRepository endpointRepository;
+    private final EndpointService endpointService;
 
     private ApiServiceResponseDTO mapToDTO(ApiService apiService){
         ApiServiceResponseDTO dto = new ApiServiceResponseDTO();
@@ -83,9 +90,16 @@ public class ApiServiceImplDb implements ApiService_Service {
     }
 
     @Override
+    @Transactional
     public void deleteService(Long id) {
         ApiService service = apiServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service not found"));
+
+        List<Endpoint> endpoints = endpointRepository.findByApiServiceId(id);
+        for (Endpoint endpoint : endpoints) {
+            endpointService.deleteEndpoint(endpoint.getId());
+        }
+
         apiServiceRepository.delete(service);
     }
 

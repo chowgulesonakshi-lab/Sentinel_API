@@ -87,12 +87,12 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public long getUpCount() {
-        return metricRepository.countByStatus(Metrics.HealthStatus.UP);
+        return metricRepository.countLatestByStatus(Metrics.HealthStatus.UP);
     }
 
     @Override
     public long getDownCount() {
-        return metricRepository.countByStatus(Metrics.HealthStatus.DOWN);
+        return metricRepository.countLatestByStatus(Metrics.HealthStatus.DOWN);
     }
 
     @Override
@@ -114,5 +114,10 @@ public class MetricsServiceImpl implements MetricsService {
     public Optional<MetricsResponseDTO> getLatestMetricForEndpoint(Long endpointId) {
         return metricRepository.findTopByEndpoint_IdOrderByTimeStampDesc(endpointId)
                 .map(this::mapToDTO);
+    }
+
+    @Override
+    public long getSlowApisCount() {
+        return metricRepository.countLatestSlowApis(1000);
     }
 }

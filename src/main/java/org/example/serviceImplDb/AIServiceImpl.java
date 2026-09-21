@@ -111,14 +111,37 @@ public class AIServiceImpl implements AIService {
             if (aiResponseNode == null) {
                 throw new RuntimeException(
                         "Ollama response does not contain 'response'"
-                );}
+                );
+            }
             String aiResponse = aiResponseNode.asText().trim();
+
+            // Strip any accidental markdown formatting around JSON
+            if (aiResponse.startsWith("```json")) {
+                aiResponse = aiResponse.substring(7);
+            } else if (aiResponse.startsWith("```")) {
+                aiResponse = aiResponse.substring(3);
+            }
+            if (aiResponse.endsWith("```")) {
+                aiResponse = aiResponse.substring(0, aiResponse.length() - 3);
+            }
+            aiResponse = aiResponse.trim();
+
             return objectMapper.readValue(
                     aiResponse,
                     AIAnalysisResponse.class);
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "AI analysis failed: " + e.getMessage(),e);
+            AIAnalysisResponse fallback = new AIAnalysisResponse();
+            fallback.setSeverity(alert.getSeverity() != null ? alert.getSeverity().name() : "MEDIUM");
+            fallback.setSummary("AI Analysis Unavailable: Ollama Service Unreachable");
+            fallback.setLikelyCause("Local Ollama model 'qwen2.5:7b' server is not running on http://localhost:11434.");
+            fallback.setPossibleCauses(java.util.List.of(
+                    "Ollama process is stopped",
+                    "Model 'qwen2.5:7b' is not downloaded",
+                    "Network connection issue to local LLM port 11434"
+            ));
+            fallback.setRecommendation("Start Ollama service via 'ollama serve' and ensure model 'qwen2.5:7b' is pulled.");
+            fallback.setConfidence(0);
+            return fallback;
         }
     }
 }

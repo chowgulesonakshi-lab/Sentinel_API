@@ -43,7 +43,14 @@ public class MonitoringServiceImpl implements MonitoringService {
         metrics.setEndpoint(endpoint);
         long startTime = System.currentTimeMillis();
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
+            int timeout = endpoint.getTimeoutMillis() > 0 ? endpoint.getTimeoutMillis() : 5000;
+            org.springframework.http.client.SimpleClientHttpRequestFactory requestFactory =
+                    new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            requestFactory.setConnectTimeout(timeout);
+            requestFactory.setReadTimeout(timeout);
+            RestTemplate timeoutRestTemplate = new RestTemplate(requestFactory);
+
+            ResponseEntity<String> response = timeoutRestTemplate.exchange(
                     endpoint.getUrl(),
                     HttpMethod.valueOf(endpoint.getMethod().name()),
                     null,

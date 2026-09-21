@@ -42,11 +42,14 @@ function Services() {
     };
 
     const handleDeleteService = async (id) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this service? All associated endpoints, metrics, and alerts will also be deleted.");
+        if (!confirmDelete) return;
         try {
             await deleteService(id);
             loadServices();
         } catch (error) {
             console.error("Error deleting service:", error);
+            alert("Failed to delete service: " + (error.response?.data?.message || error.message));
         }
     };
 

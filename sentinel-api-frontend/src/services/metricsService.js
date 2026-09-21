@@ -31,3 +31,8 @@ export const getFailedChecksCount = async () => {
     const response = await axios.get(`${API_URL}/failed-count`);
     return response.data;
 };
+
+export const getSlowApisCount = async () => {
+    const response = await axios.get(`${API_URL}/slow-count`);
+    return response.data;
+};

@@ -8,7 +8,8 @@ import {
     getLatestMetrics,
     getAverageResponseTime,
     getUpCount,
-    getDownCount
+    getDownCount,
+    getSlowApisCount
 } from "../services/metricsService";
 import {
     CircleCheck,
@@ -22,6 +23,7 @@ function Metrics() {
     const [averageTime, setAverageTime] = useState(0);
     const [upCount, setUpCount] = useState(0);
     const [downCount, setDownCount] = useState(0);
+    const [slowApis, setSlowApis] = useState(0);
 
     useEffect(() => {
         loadMetrics();
@@ -38,6 +40,9 @@ function Metrics() {
             const avg = await getAverageResponseTime();
             const up = await getUpCount();
             const down = await getDownCount();
+            const slow = await getSlowApisCount();
+
+            setSlowApis(slow);
             setMetrics(latest);
             setAverageTime(avg);
             setUpCount(up);
@@ -48,10 +53,6 @@ function Metrics() {
                 error);
         }
     };
-
-    const slowApis = metrics.filter(
-        metric => metric.responseTime >= 1000
-    ).length;
 
     return (
         <MainLayout>

@@ -13,6 +13,7 @@ import org.example.service.EndpointService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Profile("db")
+@Transactional
 public class EndpointServiceImplDb implements EndpointService {
     private final EndpointRepository endpointRepository;
     private final ApiServiceRepository apiServiceRepository;
