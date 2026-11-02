@@ -6,7 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.example.dto.EndpointRequestDTO;
 import org.example.dto.EndpointResponseDTO;
 import org.example.entity.Endpoint;
+import org.example.dto.MetricsResponseDTO;
+import org.example.entity.Metrics;
 import org.example.service.EndpointService;
+import org.example.service.MonitoringService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EndpointController {
     private final EndpointService endpointService;
+    private final MonitoringService monitoringService;
 
     @GetMapping
     public ResponseEntity<List<EndpointResponseDTO>> getAllEndpoints() {
@@ -66,5 +70,20 @@ public class EndpointController {
     public ResponseEntity<Void> deleteEndpoint(@PathVariable Long id) {
         endpointService.deleteEndpoint(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/trigger")
+    public ResponseEntity<MetricsResponseDTO> triggerEndpointCheck(@PathVariable Long id) {
+        Metrics metric = monitoringService.monitorEndpointById(id);
+        MetricsResponseDTO dto = new MetricsResponseDTO();
+        dto.setId(metric.getId());
+        dto.setEndpointId(metric.getEndpoint().getId());
+        dto.setEndpointUrl(metric.getEndpoint().getUrl());
+        dto.setStatus(metric.getStatus());
+        dto.setStatusCode(metric.getStatusCode());
+        dto.setSuccess(metric.isSuccess());
+        dto.setResponseTime(metric.getResponseTime());
+        dto.setTimeStamp(metric.getTimeStamp());
+        return ResponseEntity.ok(dto);
     }
 }

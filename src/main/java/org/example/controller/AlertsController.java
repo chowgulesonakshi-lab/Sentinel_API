@@ -69,4 +69,9 @@ public class AlertsController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/{id}/resolve")
+    public ResponseEntity<AlertsResponseDTO> resolveAlert(@PathVariable Long id) {
+        return ResponseEntity.ok(alertsService.resolveAlert(id));
+    }
 }

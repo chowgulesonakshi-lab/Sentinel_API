@@ -14,8 +14,8 @@ public class EndpointScheduler {
         this.monitoringService = monitoringService;
     }
 
-    @Scheduled(fixedRate = 60000)
-    public void mointorEndpoints(){
-        monitoringService.monitorAllEndpoints();
+    @Scheduled(fixedDelay = 5000)
+    public void monitorEndpoints(){
+        monitoringService.monitorDueEndpoints();
     }
 }

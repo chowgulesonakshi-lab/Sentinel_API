@@ -14,6 +14,15 @@ public class AlertsResponseDTO {
     private Alerts.Severity severity;
     private String message;
     private boolean resolved;
+    private Long ruleId;
+    private String ruleName;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
+    private Double anomalyObservedResponseTime;
+    private Double anomalyHistoricalAverage;
+    private Double anomalyStandardDeviation;
+    private Double anomalyDetectionThreshold;
+    private Double anomalyDeviationFromAverage;
+    private Double anomalySensitivityMultiplier;
+    private String anomalyExplanation;
 }

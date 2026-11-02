@@ -36,6 +36,18 @@ public class EndpointServiceImplDb implements EndpointService {
         dto.setUrl(endpoint.getUrl());
         dto.setTimeoutMillis(endpoint.getTimeoutMillis());
         dto.setEnabled(endpoint.isEnabled());
+        dto.setIntervalSeconds(endpoint.getIntervalSeconds() != null ? endpoint.getIntervalSeconds() : 60);
+        dto.setExpectedStatusCodes(endpoint.getExpectedStatusCodes() != null ? endpoint.getExpectedStatusCodes() : "200,201,202,204");
+        dto.setSlowResponseThresholdMillis(endpoint.getSlowResponseThresholdMillis() != null ? endpoint.getSlowResponseThresholdMillis() : 1000);
+        dto.setConsecutiveFailuresThreshold(endpoint.getConsecutiveFailuresThreshold() != null ? endpoint.getConsecutiveFailuresThreshold() : 1);
+        dto.setConsecutiveFailuresCount(endpoint.getConsecutiveFailuresCount() != null ? endpoint.getConsecutiveFailuresCount() : 0);
+        dto.setAnomalyDetectionEnabled(!Boolean.FALSE.equals(endpoint.getAnomalyDetectionEnabled()));
+        dto.setAnomalySensitivityMultiplier(endpoint.getAnomalySensitivityMultiplier() != null ? endpoint.getAnomalySensitivityMultiplier() : 3.0);
+        dto.setAnomalyObservationWindow(endpoint.getAnomalyObservationWindow() != null ? endpoint.getAnomalyObservationWindow() : 20);
+        dto.setAnomalyMinimumObservations(endpoint.getAnomalyMinimumObservations() != null ? endpoint.getAnomalyMinimumObservations() : 5);
+        dto.setHeaders(endpoint.getHeaders());
+        dto.setRequestBody(endpoint.getRequestBody());
+        dto.setLastMonitoredAt(endpoint.getLastMonitoredAt());
 
         dto.setApiServiceId(endpoint.getApiService().getId());
         dto.setApiServiceName(endpoint.getApiService().getName());
@@ -57,6 +69,19 @@ public class EndpointServiceImplDb implements EndpointService {
         endpoint.setUrl(requestDTO.getUrl());
         endpoint.setTimeoutMillis(requestDTO.getTimeoutMillis());
         endpoint.setEnabled(requestDTO.isEnabled());
+        endpoint.setIntervalSeconds(requestDTO.getIntervalSeconds() != null ? requestDTO.getIntervalSeconds() : 60);
+        endpoint.setExpectedStatusCodes(requestDTO.getExpectedStatusCodes() != null && !requestDTO.getExpectedStatusCodes().isBlank()
+                ? requestDTO.getExpectedStatusCodes()
+                : "200,201,202,204");
+        endpoint.setSlowResponseThresholdMillis(requestDTO.getSlowResponseThresholdMillis() != null ? requestDTO.getSlowResponseThresholdMillis() : 1000);
+        endpoint.setConsecutiveFailuresThreshold(requestDTO.getConsecutiveFailuresThreshold() != null ? requestDTO.getConsecutiveFailuresThreshold() : 1);
+        endpoint.setHeaders(requestDTO.getHeaders());
+        endpoint.setRequestBody(requestDTO.getRequestBody());
+        endpoint.setConsecutiveFailuresCount(0);
+        endpoint.setAnomalyDetectionEnabled(requestDTO.isAnomalyDetectionEnabled());
+        endpoint.setAnomalySensitivityMultiplier(requestDTO.getAnomalySensitivityMultiplier());
+        endpoint.setAnomalyObservationWindow(requestDTO.getAnomalyObservationWindow());
+        endpoint.setAnomalyMinimumObservations(requestDTO.getAnomalyMinimumObservations());
         endpoint.setApiService(service);
 
         Endpoint savedEndpoint = endpointRepository.save(endpoint);
@@ -81,11 +106,34 @@ public class EndpointServiceImplDb implements EndpointService {
         ApiService service = apiServiceRepository.findById(requestDTO.getApiServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
-
         endpoint.setMethod(requestDTO.getMethod());
         endpoint.setUrl(requestDTO.getUrl());
         endpoint.setTimeoutMillis(requestDTO.getTimeoutMillis());
         endpoint.setEnabled(requestDTO.isEnabled());
+        if (requestDTO.getIntervalSeconds() != null) {
+            endpoint.setIntervalSeconds(requestDTO.getIntervalSeconds());
+        }
+        if (requestDTO.getExpectedStatusCodes() != null) {
+            endpoint.setExpectedStatusCodes(requestDTO.getExpectedStatusCodes());
+        }
+        if (requestDTO.getSlowResponseThresholdMillis() != null) {
+            endpoint.setSlowResponseThresholdMillis(requestDTO.getSlowResponseThresholdMillis());
+        }
+        if (requestDTO.getConsecutiveFailuresThreshold() != null) {
+            endpoint.setConsecutiveFailuresThreshold(requestDTO.getConsecutiveFailuresThreshold());
+        }
+        endpoint.setAnomalyDetectionEnabled(requestDTO.isAnomalyDetectionEnabled());
+        if (requestDTO.getAnomalySensitivityMultiplier() != null) {
+            endpoint.setAnomalySensitivityMultiplier(requestDTO.getAnomalySensitivityMultiplier());
+        }
+        if (requestDTO.getAnomalyObservationWindow() != null) {
+            endpoint.setAnomalyObservationWindow(requestDTO.getAnomalyObservationWindow());
+        }
+        if (requestDTO.getAnomalyMinimumObservations() != null) {
+            endpoint.setAnomalyMinimumObservations(requestDTO.getAnomalyMinimumObservations());
+        }
+        endpoint.setHeaders(requestDTO.getHeaders());
+        endpoint.setRequestBody(requestDTO.getRequestBody());
         endpoint.setApiService(service);
 
         Endpoint updatedEndpoint = endpointRepository.save(endpoint);

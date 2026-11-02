@@ -19,6 +19,9 @@ public interface AlertsRepository extends JpaRepository<Alerts, Long> {
     List<Alerts> findBySeverity(Alerts.Severity severity);
     List<Alerts> findTop10ByOrderByCreatedAtDesc();
     Optional<Alerts> findByEndpointIdAndTypeAndResolvedFalse(Long endpointId, Alerts.AlertType type);
+    Optional<Alerts> findByEndpointIdAndRuleIdAndResolvedFalse(Long endpointId, Long ruleId);
+    List<Alerts> findByEndpointIdAndResolvedFalse(Long endpointId);
+    List<Alerts> findByRuleId(Long ruleId);
     long countByResolvedFalse();
     long countBySeverity(Alerts.Severity severity);
 

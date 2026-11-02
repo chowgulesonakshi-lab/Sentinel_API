@@ -19,4 +19,13 @@ public class MetricsResponseDTO {
 
     private Double responseTime;
     private LocalDateTime timeStamp;
+    private boolean anomalyEvaluated;
+    private boolean anomalous;
+    private Integer anomalyObservationCount;
+    private Double historicalAverage;
+    private Double standardDeviation;
+    private Double anomalyDetectionThreshold;
+    private Double deviationFromAverage;
+    private Double anomalySensitivityMultiplier;
+    private String anomalyExplanation;
 }

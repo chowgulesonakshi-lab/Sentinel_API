@@ -18,4 +18,5 @@ public interface AlertsService {
     long getActiveAlertCount();
     long getCriticalAlertCount();
     Optional<Alerts> getActiveAlert(Long endpointId, Alerts.AlertType type);
+    AlertsResponseDTO resolveAlert(Long alertId);
 }

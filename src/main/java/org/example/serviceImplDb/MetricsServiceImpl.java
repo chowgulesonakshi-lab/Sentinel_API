@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.entity.Metrics;
 import org.example.repository.MetricRepository;
 import org.example.service.MetricsService;
+import org.example.service.anomaly.AnomalyDetectionResult;
+import org.example.service.anomaly.AnomalyDetectionService;
 import org.springframework.stereotype.Service;
 import org.example.dto.MetricsResponseDTO;
 
@@ -15,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MetricsServiceImpl implements MetricsService {
     private final MetricRepository metricRepository;
+    private final AnomalyDetectionService anomalyDetectionService;
     private MetricsResponseDTO mapToDTO(Metrics metrics) {
 
         MetricsResponseDTO dto = new MetricsResponseDTO();
@@ -29,6 +32,16 @@ public class MetricsServiceImpl implements MetricsService {
         if (metrics.getEndpoint() != null) {
             dto.setEndpointId(metrics.getEndpoint().getId());
             dto.setEndpointUrl(metrics.getEndpoint().getUrl());
+            AnomalyDetectionResult anomaly = anomalyDetectionService.evaluate(metrics.getEndpoint(), metrics);
+            dto.setAnomalyEvaluated(anomaly.isEvaluated());
+            dto.setAnomalous(anomaly.isAnomalous());
+            dto.setAnomalyObservationCount(anomaly.getObservationCount());
+            dto.setHistoricalAverage(anomaly.getHistoricalAverage());
+            dto.setStandardDeviation(anomaly.getStandardDeviation());
+            dto.setAnomalyDetectionThreshold(anomaly.getDetectionThreshold());
+            dto.setDeviationFromAverage(anomaly.getDeviationFromAverage());
+            dto.setAnomalySensitivityMultiplier(anomaly.getSensitivityMultiplier());
+            dto.setAnomalyExplanation(anomaly.getExplanation());
         }
 
         return dto;

@@ -10,6 +10,18 @@ public class EndpointResponseDTO {
     private String url;
     private Integer timeoutMillis;
     private boolean enabled;
+    private Integer intervalSeconds;
+    private String expectedStatusCodes;
+    private Integer slowResponseThresholdMillis;
+    private Integer consecutiveFailuresThreshold;
+    private Integer consecutiveFailuresCount;
+    private boolean anomalyDetectionEnabled;
+    private Double anomalySensitivityMultiplier;
+    private Integer anomalyObservationWindow;
+    private Integer anomalyMinimumObservations;
+    private String headers;
+    private String requestBody;
+    private java.time.LocalDateTime lastMonitoredAt;
 
     private Long apiServiceId;
     private String apiServiceName;

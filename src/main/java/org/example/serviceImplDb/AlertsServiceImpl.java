@@ -27,10 +27,21 @@ public class AlertsServiceImpl implements AlertsService {
 
         dto.setCreatedAt(alert.getCreatedAt());
         dto.setResolvedAt(alert.getResolvedAt());
+        dto.setAnomalyObservedResponseTime(alert.getAnomalyObservedResponseTime());
+        dto.setAnomalyHistoricalAverage(alert.getAnomalyHistoricalAverage());
+        dto.setAnomalyStandardDeviation(alert.getAnomalyStandardDeviation());
+        dto.setAnomalyDetectionThreshold(alert.getAnomalyDetectionThreshold());
+        dto.setAnomalyDeviationFromAverage(alert.getAnomalyDeviationFromAverage());
+        dto.setAnomalySensitivityMultiplier(alert.getAnomalySensitivityMultiplier());
+        dto.setAnomalyExplanation(alert.getAnomalyExplanation());
 
         if (alert.getEndpoint() != null) {
             dto.setEndpointId(alert.getEndpoint().getId());
             dto.setEndpointUrl(alert.getEndpoint().getUrl());
+        }
+        if (alert.getRule() != null) {
+            dto.setRuleId(alert.getRule().getId());
+            dto.setRuleName(alert.getRule().getName());
         }
         return dto;
     }
@@ -107,5 +118,15 @@ public class AlertsServiceImpl implements AlertsService {
     @Override
     public Optional<Alerts> getActiveAlert(Long endpointId, Alerts.AlertType type) {
         return alertsRepository.findByEndpointIdAndTypeAndResolvedFalse(endpointId, type);
+    }
+
+    @Override
+    public AlertsResponseDTO resolveAlert(Long alertId) {
+        Alerts alert = alertsRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        alert.setResolved(true);
+        alert.setResolvedAt(java.time.LocalDateTime.now());
+        Alerts saved = alertsRepository.save(alert);
+        return mapToDTO(saved);
     }
 }
