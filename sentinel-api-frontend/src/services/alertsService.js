@@ -26,3 +26,8 @@ export const getCriticalAlertCount = async () => {
     const response = await axios.get(`${API_URL}/critical-count`);
     return response.data;
 };
+
+export const resolveAlert = async (id) => {
+    const response = await axios.put(`${API_URL}/${id}/resolve`);
+    return response.data;
+};

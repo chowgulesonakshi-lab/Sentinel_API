@@ -13,6 +13,9 @@ function EndpointPerformTable({ metrics }) {
                 sum: 0,
                 min: metric.responseTime,
                 max: metric.responseTime
+                , anomaly: metric.anomalous
+                , baseline: metric.historicalAverage
+                , threshold: metric.anomalyDetectionThreshold
             };
 
         }
@@ -35,6 +38,9 @@ function EndpointPerformTable({ metrics }) {
         min: value.min.toFixed(0),
         max: value.max.toFixed(0),
         requests: value.total
+        , anomaly: value.anomaly
+        , baseline: value.baseline
+        , threshold: value.threshold
     }));
 
 
@@ -92,6 +98,7 @@ function EndpointPerformTable({ metrics }) {
                             <th className="pb-3">
                                 Requests
                             </th>
+                            <th className="pb-3">Anomaly</th>
 
                         </tr>
 
@@ -145,6 +152,16 @@ function EndpointPerformTable({ metrics }) {
                                 text-slate-700 dark:text-slate-300
                             ">
                                 {item.requests}
+                            </td>
+                            <td className="text-xs">
+                                {item.anomaly ? (
+                                    <span className="text-red-500 font-semibold">Detected</span>
+                                ) : item.baseline != null ? (
+                                    <span className="text-emerald-500">Normal</span>
+                                ) : (
+                                    <span className="text-slate-400">Building baseline</span>
+                                )}
+                                {item.baseline != null && <div className="text-slate-400">avg {Number(item.baseline).toFixed(0)} ms</div>}
                             </td>
 
 

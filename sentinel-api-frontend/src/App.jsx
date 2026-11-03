@@ -8,6 +8,7 @@ import Endpoints from "./pages/Endpoints";
 import Metrics from "./pages/Metrics";
 import NotFound from "./pages/NotFound";
 import Alerts from "./pages/Alerts";
+import Dependencies from "./pages/Dependencies";
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/services" element={<Services />} />
             <Route path="/alerts" element={<Alerts />} />
+            <Route path="/dependencies" element={<Dependencies />} />
             <Route path="/endpoints" element={<Endpoints />} />
             <Route path="/metrics" element={<Metrics />} />
             <Route path="*" element={<NotFound />} />

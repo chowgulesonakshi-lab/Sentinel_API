@@ -26,3 +26,8 @@ export const updateEndpoint = async (id, endpoint) => {
 export const deleteEndpoint = async (id) => {
     await axios.delete(`${API_URL}/${id}`, getAuthHeader());
 };
+
+export const triggerEndpointCheck = async (id) => {
+    const response = await axios.post(`${API_URL}/${id}/trigger`, {}, getAuthHeader());
+    return response.data;
+};

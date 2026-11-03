@@ -9,6 +9,7 @@ import org.example.entity.Endpoint;
 import org.example.repository.ApiServiceRepository;
 import org.example.repository.EndpointRepository;
 import org.example.repository.ProjectRepository;
+import org.example.repository.ServiceDependencyRepository;
 import org.example.service.ApiService_Service;
 import org.example.service.EndpointService;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ public class ApiServiceImplDb implements ApiService_Service {
     private final ProjectRepository projectRepository;
     private final EndpointRepository endpointRepository;
     private final EndpointService endpointService;
+    private final ServiceDependencyRepository serviceDependencyRepository;
 
     private ApiServiceResponseDTO mapToDTO(ApiService apiService){
         ApiServiceResponseDTO dto = new ApiServiceResponseDTO();
@@ -96,6 +98,9 @@ public class ApiServiceImplDb implements ApiService_Service {
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
         List<Endpoint> endpoints = endpointRepository.findByApiServiceId(id);
+        if (serviceDependencyRepository != null) {
+            serviceDependencyRepository.deleteByServiceId(id);
+        }
         for (Endpoint endpoint : endpoints) {
             endpointService.deleteEndpoint(endpoint.getId());
         }

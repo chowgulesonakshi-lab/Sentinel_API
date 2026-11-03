@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {LayoutDashboard, FolderKanban, Layers3, Globe, ChartNoAxesCombined,
-    Siren} from "lucide-react";
+    Siren, GitBranch} from "lucide-react";
 import sentinelLogo from "../../assets/sentinel-logo.png";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
@@ -67,6 +67,11 @@ function Sidebar() {
                 <NavLink to="/alerts" className={linkClass}>
                     <Siren size={19} />
                     <span>Alerts</span>
+                </NavLink>
+
+                <NavLink to="/dependencies" className={linkClass}>
+                    <GitBranch size={19} />
+                    <span>Dependencies</span>
                 </NavLink>
 
             </nav>

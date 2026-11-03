@@ -83,6 +83,17 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 * Calculate average response time across successful checks
 * Calculate current healthy and failed endpoint counts based on the latest health state
 * Retrieve the latest monitoring records
+* Calculate endpoint-specific historical response-time baselines
+* Detect statistical latency anomalies using configurable sensitivity
+* Explain anomalies with average, standard deviation, threshold, and deviation data
+
+### Service Dependency Mapping
+
+* Define directional dependencies between services in the same project
+* Prevent self-dependencies, duplicates, cross-project relationships, and circular graphs
+* View project dependency graphs with service health status
+* Analyze direct, indirect, confirmed, and potentially affected services
+* Inspect dependency relationships from the `/dependencies` frontend page
 
 ![Metrics Management](./screenshots/metrics.png)
 
@@ -92,6 +103,7 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 * Severity categorization (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
 * Active and resolved alert tracking
 * Alert history with resolution status
+* Evidence-based `ANOMALY_DETECTED` alerts with duplicate suppression and automatic resolution
 
 ![Alerts Management](./screenshots/alerts.png)
 
@@ -344,6 +356,19 @@ The backend provides RESTful endpoints. Swagger documentation is available inter
 * `GET /metrics/slow-count` - Count endpoints whose latest response time exceeds 1000 ms
 * `GET /metrics/last-health-check` - Get the timestamp of the latest recorded health check
 
+Metrics responses include anomaly evaluation data when enough valid endpoint history exists, including the historical average, standard deviation, detection threshold, deviation, sensitivity, observation count, and explanation.
+
+### Alert Rules (`/alert-rules`)
+
+* `GET /alert-rules` - List configured alert rules
+* `GET /alert-rules/{id}` - Retrieve an alert rule
+* `GET /alert-rules/endpoint/{endpointId}` - List rules for an endpoint
+* `GET /alert-rules/service/{serviceId}` - List rules for a service
+* `POST /alert-rules` - Create an alert rule
+* `PUT /alert-rules/{id}` - Update an alert rule
+* `DELETE /alert-rules/{id}` - Delete an alert rule
+* `PATCH /alert-rules/{id}/toggle` - Enable or disable a rule
+
 ### 🚨 Alerts (`/alerts`)
 
 * `GET /alerts` - List all system alerts
@@ -351,6 +376,18 @@ The backend provides RESTful endpoints. Swagger documentation is available inter
 * `GET /alerts/resolved` - Fetch historical resolved alerts
 * `GET /alerts/recent` - Get recent alert log feed
 * `GET /alerts/critical-count` - Count critical alerts
+
+Anomaly alerts include the observed latency, historical average, standard deviation, calculated threshold, deviation from baseline, sensitivity multiplier, and detection explanation.
+
+### Service Dependencies (`/service-dependencies`)
+
+* `POST /service-dependencies` - Create a service dependency
+* `PUT /service-dependencies/{id}` - Update a dependency
+* `DELETE /service-dependencies/{id}` - Remove a dependency
+* `GET /service-dependencies/project/{projectId}` - List project dependencies
+* `GET /service-dependencies/service/{serviceId}` - List dependencies for a service
+* `GET /service-dependencies/project/{projectId}/graph` - Retrieve the complete project graph with service health
+* `GET /service-dependencies/project/{projectId}/impact/{serviceId}` - Analyze direct and indirect dependency impact
 
 ### 🤖 AI Incident Analysis (`/ai`)
 
@@ -432,6 +469,60 @@ The dashboard and metrics analysis use the **latest health state of each endpoin
 Slow APIs are identified when the latest successful response for an endpoint has a response time **greater than 1000 ms**.
 
 Historical metric records remain available for response-time and health analysis.
+
+### Statistical anomaly detection
+
+Anomaly detection is evaluated independently for each endpoint. Successful historical measurements are filtered to remove missing, invalid, non-positive, and failed-check values. The configured observation window is used to calculate an endpoint-specific average and standard deviation.
+
+The default detection rule is:
+
+```text
+anomaly when current response time > historical average
+          + (sensitivity multiplier × standard deviation)
+```
+
+Detection is skipped until the configured minimum number of valid observations is available. Anomaly detection can be enabled or disabled per endpoint, and its sensitivity, history window, and minimum sample count can be configured from the endpoint settings modal.
+
+### Service dependency impact
+
+Dependencies are stored as `dependent service → dependency service`. When a service is selected in the dependency graph, Sentinel traverses downstream relationships to identify direct and indirect dependents. Monitoring evidence distinguishes confirmed unhealthy services from services that are only potentially affected; a dependency relationship alone does not mark a service as failed.
+
+When AI incident analysis is requested, the incident context includes dependency relationships and potential downstream impact as evidence separate from root-cause hypotheses.
+
+---
+
+## Verification
+
+Backend tests:
+
+```powershell
+.\gradlew.bat test
+```
+
+Frontend production build:
+
+```powershell
+cd sentinel-api-frontend
+npm run build
+```
+
+The backend test suite covers anomaly baselines, invalid and insufficient history, configurable sensitivity, duplicate anomaly alerts, anomaly resolution, dependency validation, circular dependency prevention, dependency graphs, and direct/indirect impact analysis.
+
+### Capability evidence
+
+The following distinction keeps the project claims aligned with the available evidence:
+
+| Capability | Implementation evidence | Verification status |
+| :--- | :--- | :--- |
+| Configurable API monitoring | Endpoint-level intervals, timeouts, expected status codes, request configuration, and enable/disable controls | Covered by existing monitoring and endpoint tests |
+| Dynamic alert management | Alert rules, evaluators, active/resolved lifecycle, duplicate suppression, and resolution | Covered by alert-rule and monitoring tests |
+| Evidence-based AI incident analysis | Ollama incident context includes telemetry, endpoint history, alert data, and dependency context | AI context tests pass; live Ollama inference is environment-dependent |
+| Statistical anomaly detection | Endpoint-specific historical average, standard deviation, sensitivity, minimum samples, and anomaly evidence | Anomaly unit and alert-lifecycle tests pass |
+| Service dependency mapping and impact analysis | Dependency CRUD, graph, health status, cycle validation, and direct/indirect impact APIs | Dependency service tests pass; live PostgreSQL/API/UI verification remains environment-dependent |
+
+The automated checks confirm the covered code paths; they do not by themselves prove production readiness or every runtime integration. In the current development environment, `npm run build` passes and targeted linting for the dependency UI passes. Repository-wide frontend lint still reports pre-existing issues in other modified files. A live PostgreSQL startup, authenticated browser walkthrough, and live Ollama request must be performed separately before describing those integrations as production-verified.
+
+The application uses the existing `spring.jpa.hibernate.ddl-auto: update` configuration to add anomaly and service-dependency columns/tables when the backend starts. Review this behavior before using automatic schema updates in production.
 
 ---
 
