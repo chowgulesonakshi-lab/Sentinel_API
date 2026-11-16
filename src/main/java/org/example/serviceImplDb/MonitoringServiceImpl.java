@@ -21,6 +21,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.example.service.rule.AlertRuleEngine;
 import org.example.service.anomaly.AnomalyDetectionResult;
 import org.example.service.anomaly.AnomalyDetectionService;
+import org.example.security.EndpointUrlValidator;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.ConnectException;
@@ -38,6 +39,7 @@ public class MonitoringServiceImpl implements MonitoringService {
     private final AlertRuleEngine alertRuleEngine;
     private final AnomalyDetectionService anomalyDetectionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final EndpointUrlValidator endpointUrlValidator = new EndpointUrlValidator();
 
     @Autowired
     public MonitoringServiceImpl(EndpointRepository endpointRepository,
@@ -111,6 +113,7 @@ public class MonitoringServiceImpl implements MonitoringService {
 
     @Override
     public Metrics monitorEndpoint(Endpoint endpoint) {
+        endpointUrlValidator.validate(endpoint.getUrl());
         Metrics metrics = new Metrics();
         metrics.setEndpoint(endpoint);
 
