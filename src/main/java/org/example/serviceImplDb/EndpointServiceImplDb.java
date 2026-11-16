@@ -62,6 +62,7 @@ public class EndpointServiceImplDb implements EndpointService {
     public EndpointResponseDTO addEndpoint(EndpointRequestDTO requestDTO) {
         ApiService service = apiServiceRepository.findById(requestDTO.getApiServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
+        org.example.security.ResourceOwnership.requireOwner(service);
 
         Endpoint endpoint = new Endpoint();
 
@@ -90,21 +91,27 @@ public class EndpointServiceImplDb implements EndpointService {
 
     @Override
     public List<EndpointResponseDTO> getAllEndpoints() {
-        return endpointRepository.findAll().stream().map(this::mapToDTO).toList();
+        return endpointRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public Optional<EndpointResponseDTO> getEndpointById(Long id) {
-        return endpointRepository.findById(id).map(this::mapToDTO);
+        return endpointRepository.findById(id)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO);
     }
 
     @Override
     public EndpointResponseDTO updateEndpoint(Long id, EndpointRequestDTO requestDTO) {
         Endpoint endpoint = endpointRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Endpoint not found"));
+        org.example.security.ResourceOwnership.requireOwner(endpoint);
 
         ApiService service = apiServiceRepository.findById(requestDTO.getApiServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
+        org.example.security.ResourceOwnership.requireOwner(service);
 
         endpoint.setMethod(requestDTO.getMethod());
         endpoint.setUrl(requestDTO.getUrl());
@@ -144,6 +151,7 @@ public class EndpointServiceImplDb implements EndpointService {
     public void deleteEndpoint(Long id) {
         Endpoint endpoint = endpointRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Endpoint not found"));
+        org.example.security.ResourceOwnership.requireOwner(endpoint);
 
         alertsRepository.deleteByEndpoint(endpoint);
         metricRepository.deleteByEndpoint(endpoint);
@@ -154,6 +162,7 @@ public class EndpointServiceImplDb implements EndpointService {
     public List<EndpointResponseDTO> getEndpointsByMethod(Endpoint.HttpMethod method) {
         return endpointRepository.findByMethod(method)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -162,14 +171,19 @@ public class EndpointServiceImplDb implements EndpointService {
     public List<EndpointResponseDTO> getEndpointsByTimeoutGreaterThan(int timeout) {
         return endpointRepository.findByTimeoutMillisGreaterThan(timeout)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
 
     @Override
     public List<EndpointResponseDTO> getEndpointsByApiService_Id(Long serviceId) {
+        ApiService service = apiServiceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        org.example.security.ResourceOwnership.requireOwner(service);
         return endpointRepository.findByApiServiceId(serviceId)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
