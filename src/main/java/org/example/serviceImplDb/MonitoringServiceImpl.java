@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.entity.Alerts;
 import org.example.entity.Endpoint;
 import org.example.entity.Metrics;
+import org.example.security.EndpointUrlValidator;
 import org.example.repository.EndpointRepository;
 import org.example.service.AlertsService;
 import org.example.service.MetricsService;
@@ -122,6 +123,7 @@ public class MonitoringServiceImpl implements MonitoringService {
         requestFactory.setConnectTimeout(timeout);
         requestFactory.setReadTimeout(timeout);
 
+        EndpointUrlValidator.validatePublicHttpUrl(endpoint.getUrl());
         RestTemplate client = new RestTemplate(requestFactory);
         // Do not throw exceptions on 4xx/5xx so we can check expectedStatusCodes accurately
         client.setErrorHandler(new DefaultResponseErrorHandler() {
