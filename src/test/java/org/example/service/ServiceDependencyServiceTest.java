@@ -13,6 +13,7 @@ import org.example.repository.ProjectRepository;
 import org.example.repository.ServiceDependencyRepository;
 import org.example.serviceImplDb.ServiceDependencyServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,6 +51,11 @@ class ServiceDependencyServiceTest {
         a = service(10L, "Order", project);
         b = service(20L, "Payment", project);
         c = service(30L, "Inventory", project);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
