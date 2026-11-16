@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.entity.Alerts;
+import org.example.entity.AppUser;
 import org.example.entity.ApiService;
 import org.example.entity.Endpoint;
 import org.example.entity.Metrics;
@@ -19,6 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -61,16 +65,31 @@ public class CascadeDeleteTest {
     @InjectMocks
     private EndpointServiceImplDb endpointServiceImpl;
 
+    @BeforeEach
+    void authenticateOwner() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("owner@example.com", "password", "ROLE_VIEWER"));
+    }
+
+    private AppUser owner() {
+        AppUser owner = new AppUser();
+        owner.setEmail("owner@example.com");
+        return owner;
+    }
+
     @Test
     void testDeleteProjectCascadesToServicesAndDeletesProject() {
         Long projectId = 1L;
         Project project = new Project();
         project.setId(projectId);
+        project.setOwner(owner());
 
         ApiService service1 = new ApiService();
         service1.setId(10L);
+        service1.setProject(project);
         ApiService service2 = new ApiService();
         service2.setId(20L);
+        service2.setProject(project);
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(apiServiceRepository.findByProjectId(projectId)).thenReturn(List.of(service1, service2));
@@ -90,6 +109,9 @@ public class CascadeDeleteTest {
         Long serviceId = 10L;
         ApiService service = new ApiService();
         service.setId(serviceId);
+        Project project = new Project();
+        project.setOwner(owner());
+        service.setProject(project);
 
         Endpoint endpoint1 = new Endpoint();
         endpoint1.setId(100L);
@@ -114,6 +136,11 @@ public class CascadeDeleteTest {
         Long endpointId = 100L;
         Endpoint endpoint = new Endpoint();
         endpoint.setId(endpointId);
+        ApiService service = new ApiService();
+        Project project = new Project();
+        project.setOwner(owner());
+        service.setProject(project);
+        endpoint.setApiService(service);
 
         when(endpointRepository.findById(endpointId)).thenReturn(Optional.of(endpoint));
 
