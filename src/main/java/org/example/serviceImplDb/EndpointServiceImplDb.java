@@ -10,6 +10,7 @@ import org.example.repository.ApiServiceRepository;
 import org.example.repository.EndpointRepository;
 import org.example.repository.MetricRepository;
 import org.example.service.EndpointService;
+import org.example.security.EndpointUrlValidator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class EndpointServiceImplDb implements EndpointService {
     private final ApiServiceRepository apiServiceRepository;
     private final AlertsRepository alertsRepository;
     private final MetricRepository metricRepository;
+    private final EndpointUrlValidator endpointUrlValidator;
 
     private EndpointResponseDTO mapToDTO(Endpoint endpoint) {
         EndpointResponseDTO dto = new EndpointResponseDTO();
@@ -60,6 +62,7 @@ public class EndpointServiceImplDb implements EndpointService {
 
     @Override
     public EndpointResponseDTO addEndpoint(EndpointRequestDTO requestDTO) {
+        endpointUrlValidator.validate(requestDTO.getUrl());
         ApiService service = apiServiceRepository.findById(requestDTO.getApiServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
@@ -100,6 +103,7 @@ public class EndpointServiceImplDb implements EndpointService {
 
     @Override
     public EndpointResponseDTO updateEndpoint(Long id, EndpointRequestDTO requestDTO) {
+        endpointUrlValidator.validate(requestDTO.getUrl());
         Endpoint endpoint = endpointRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Endpoint not found"));
 

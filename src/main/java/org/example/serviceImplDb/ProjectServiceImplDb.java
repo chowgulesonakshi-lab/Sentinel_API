@@ -11,7 +11,6 @@ import org.example.repository.AppUserRepository;
 import org.example.repository.ProjectRepository;
 import org.example.service.ApiService_Service;
 import org.example.service.ProjectService;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,92 +31,87 @@ public class ProjectServiceImplDb implements ProjectService {
     private final ApiServiceRepository apiServiceRepository;
     private final ApiService_Service apiServiceService;
 
-    private ProjectResponseDTO mapToDTO(Project project){
-        ProjectResponseDTO dto = new ProjectResponseDTO();
+    private String currentEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getName() == null || authentication.getName().equals("anonymousUser")) {
+            throw new org.springframework.security.access.AccessDeniedException("Authentication required");
+        }
+        return authentication.getName();
+    }
 
+    private Project ownedProject(Long id) {
+        return projectRepository.findByIdAndOwnerEmail(id, currentEmail())
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Project not found"));
+    }
+
+    private ProjectResponseDTO mapToDTO(Project project) {
+        ProjectResponseDTO dto = new ProjectResponseDTO();
         dto.setId(project.getId());
         dto.setName(project.getName());
         dto.setDescription(project.getDescription());
-
         dto.setOwnerId(project.getOwner().getId());
         dto.setOwnerName(project.getOwner().getName());
-
         dto.setCreatedAt(project.getCreatedAt());
         return dto;
     }
 
-
     @Override
     public Optional<ProjectResponseDTO> getProjectById(Long id) {
-        return projectRepository.findById(id).map(this::mapToDTO);
+        return projectRepository.findByIdAndOwnerEmail(id, currentEmail()).map(this::mapToDTO);
     }
 
     @Override
     public List<ProjectResponseDTO> getCreatedAt(LocalDate date) {
-        return projectRepository.findByCreatedAt(date).stream().
-                map(this::mapToDTO).toList();
+        return projectRepository.findByCreatedAtAndOwnerEmail(date, currentEmail()).stream()
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public ProjectResponseDTO addProject(ProjectRequestDTO requestDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        AppUser owner = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+        AppUser owner = appUserRepository.findByEmail(currentEmail())
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("User not found"));
         Project project = new Project();
-
         project.setName(requestDTO.getName());
         project.setDescription(requestDTO.getDescription());
         project.setOwner(owner);
-
-        Project savedProject = projectRepository.save(project);
-        return mapToDTO(savedProject);
+        return mapToDTO(projectRepository.save(project));
     }
 
     @Override
     public boolean updateProject(Long id, ProjectRequestDTO requestDTO) {
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        AppUser owner = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+        Project project = ownedProject(id);
         project.setName(requestDTO.getName());
         project.setDescription(requestDTO.getDescription());
-
         projectRepository.save(project);
         return true;
     }
 
     @Override
-    @Transactional
     public void deleteProject(Long id) {
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project Not Found"));
-
+        Project project = ownedProject(id);
         List<ApiService> services = apiServiceRepository.findByProjectId(id);
         for (ApiService service : services) {
             apiServiceService.deleteService(service.getId());
         }
-
         projectRepository.delete(project);
     }
 
     @Override
     public List<ProjectResponseDTO> getAllProjects() {
-        return projectRepository.findAll().stream().map(this::mapToDTO).toList();
+        return projectRepository.findByOwnerEmail(currentEmail()).stream().map(this::mapToDTO).toList();
     }
 
     @Override
     public Optional<ProjectResponseDTO> getProjectByName(String name) {
-        return projectRepository.findByName(name).map(this::mapToDTO);
+        return projectRepository.findByNameAndOwnerEmail(name, currentEmail()).map(this::mapToDTO);
     }
 
     @Override
     public List<ProjectResponseDTO> getProjectsByOwner_Id(Long ownerId) {
-        return projectRepository.findByOwnerId(ownerId).stream().map(this::mapToDTO).toList();
+        // Ignore caller-supplied owner ID: users may only enumerate their own projects.
+        AppUser current = appUserRepository.findByEmail(currentEmail())
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("User not found"));
+        return projectRepository.findByOwnerId(current.getId()).stream().map(this::mapToDTO).toList();
     }
 }
