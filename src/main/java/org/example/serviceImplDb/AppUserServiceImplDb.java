@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,34 +28,40 @@ public class AppUserServiceImplDb implements AppUserService {
         return new BCryptPasswordEncoder();
     }
 
+    private AppUser currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getName() == null || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication required");
+        }
+        return appUserRepository.findByEmail(authentication.getName().trim().toLowerCase())
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
+    }
+
     @Override
     public Optional<AppUser> getUserById(Long id) {
-        return appUserRepository.findById(id);
+        AppUser current = currentUser();
+        return current.getId().equals(id) ? Optional.of(current) : Optional.empty();
     }
 
     @Override
     public List<AppUser> getUserByRole(AppUser.Role role) {
-        return appUserRepository.findByRole(role);
+        AppUser current = currentUser();
+        return current.getRole() == role ? List.of(current) : List.of();
     }
 
     @Override
     public AppUser addUser(AppUser appUser) {
-        if(appUserRepository.existsByName(appUser.getName())){
-            throw new RuntimeException("Username already exists");
-        }
-        return appUserRepository.save(appUser);
+        throw new AccessDeniedException("Use the public signup endpoint to register an account");
     }
 
     @Override
     public boolean updateUser(Long id, AppUser appUser) {
-        Optional<AppUser> existingUser = appUserRepository.findById(id);
-        if (existingUser.isEmpty()) {
-            return false;
+        AppUser user = currentUser();
+        if (!user.getId().equals(id)) {
+            throw new AccessDeniedException("Cannot modify another user's account");
         }
-        AppUser user = existingUser.get();
         user.setName(appUser.getName());
-        user.setEmail(appUser.getEmail());
-        user.setRole(appUser.getRole());
         if (appUser.getPassword() != null && !appUser.getPassword().isBlank()) {
             user.setPassword(passwordEncoder().encode(appUser.getPassword()));
         }
@@ -62,20 +71,17 @@ public class AppUserServiceImplDb implements AppUserService {
 
     @Override
     public boolean deleteUser(Long id) {
-        if (appUserRepository.existsById(id)) {
-            appUserRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        throw new AccessDeniedException("Account deletion is not available through this endpoint");
     }
 
     @Override
     public List<AppUser> getAllUsers() {
-        return appUserRepository.findAll();
+        return List.of(currentUser());
     }
 
     @Override
     public Optional<AppUser> getUserByName(String name) {
-        return appUserRepository.findByName(name);
+        AppUser current = currentUser();
+        return current.getName() != null && current.getName().equals(name) ? Optional.of(current) : Optional.empty();
     }
 }
