@@ -107,6 +107,7 @@ public class MonitoringServiceImpl implements MonitoringService {
     public Metrics monitorEndpointById(Long endpointId) {
         Endpoint endpoint = endpointRepository.findById(endpointId)
                 .orElseThrow(() -> new RuntimeException("Endpoint not found: " + endpointId));
+        org.example.security.ResourceOwnership.requireOwner(endpoint);
         return monitorEndpoint(endpoint);
     }
 
