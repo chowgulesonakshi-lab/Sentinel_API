@@ -54,6 +54,7 @@ public class ServiceDependencyServiceImpl implements ServiceDependencyService {
     public ServiceDependencyResponseDTO update(Long id, ServiceDependencyRequestDTO request) {
         ServiceDependency relationship = dependencyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Dependency not found: " + id));
+        org.example.security.ResourceOwnership.requireOwner(relationship);
         ApiService dependent = service(request.getDependentServiceId());
         ApiService dependency = service(request.getDependencyServiceId());
         validateRelationship(dependent, dependency, id);
@@ -65,10 +66,10 @@ public class ServiceDependencyServiceImpl implements ServiceDependencyService {
 
     @Override
     public void delete(Long id) {
-        if (!dependencyRepository.existsById(id)) {
-            throw new IllegalArgumentException("Dependency not found: " + id);
-        }
-        dependencyRepository.deleteById(id);
+        ServiceDependency relationship = dependencyRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Dependency not found: " + id));
+        org.example.security.ResourceOwnership.requireOwner(relationship);
+        dependencyRepository.delete(relationship);
     }
 
     @Override
@@ -191,11 +192,15 @@ public class ServiceDependencyServiceImpl implements ServiceDependencyService {
     }
 
     private ApiService service(Long id) {
-        return serviceRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Service not found: " + id));
+        ApiService service = serviceRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Service not found: " + id));
+        org.example.security.ResourceOwnership.requireOwner(service);
+        return service;
     }
 
     private Project requireProject(Long id) {
-        return projectRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Project not found: " + id));
+        Project project = projectRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Project not found: " + id));
+        org.example.security.ResourceOwnership.requireOwner(project);
+        return project;
     }
 
     private ServiceDependencyResponseDTO map(ServiceDependency relationship) {
