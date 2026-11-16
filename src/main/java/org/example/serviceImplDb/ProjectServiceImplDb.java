@@ -49,13 +49,14 @@ public class ProjectServiceImplDb implements ProjectService {
 
     @Override
     public Optional<ProjectResponseDTO> getProjectById(Long id) {
-        return projectRepository.findById(id).map(this::mapToDTO);
+        return projectRepository.findById(id).filter(org.example.security.ResourceOwnership::isCurrentUser).map(this::mapToDTO);
     }
 
     @Override
     public List<ProjectResponseDTO> getCreatedAt(LocalDate date) {
-        return projectRepository.findByCreatedAt(date).stream().
-                map(this::mapToDTO).toList();
+        return projectRepository.findByCreatedAt(date).stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
@@ -85,6 +86,7 @@ public class ProjectServiceImplDb implements ProjectService {
         AppUser owner = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        org.example.security.ResourceOwnership.requireOwner(project);
         project.setName(requestDTO.getName());
         project.setDescription(requestDTO.getDescription());
 
@@ -98,6 +100,7 @@ public class ProjectServiceImplDb implements ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project Not Found"));
 
+        org.example.security.ResourceOwnership.requireOwner(project);
         List<ApiService> services = apiServiceRepository.findByProjectId(id);
         for (ApiService service : services) {
             apiServiceService.deleteService(service.getId());
@@ -108,16 +111,22 @@ public class ProjectServiceImplDb implements ProjectService {
 
     @Override
     public List<ProjectResponseDTO> getAllProjects() {
-        return projectRepository.findAll().stream().map(this::mapToDTO).toList();
+        return projectRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public Optional<ProjectResponseDTO> getProjectByName(String name) {
-        return projectRepository.findByName(name).map(this::mapToDTO);
+        return projectRepository.findByName(name)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO);
     }
 
     @Override
     public List<ProjectResponseDTO> getProjectsByOwner_Id(Long ownerId) {
-        return projectRepository.findByOwnerId(ownerId).stream().map(this::mapToDTO).toList();
+        return projectRepository.findByOwnerId(ownerId).stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 }
