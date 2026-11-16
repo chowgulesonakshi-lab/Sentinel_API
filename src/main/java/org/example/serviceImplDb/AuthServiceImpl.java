@@ -15,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -26,14 +28,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponseDTO registerUser(AppUserDTO appUserDTO) {
+        String email = appUserDTO.getEmail() == null
+                ? null : appUserDTO.getEmail().trim().toLowerCase(Locale.ROOT);
+
         if (userService.existsByUsername(appUserDTO.getName())) {
             return new LoginResponseDTO(null, "Error: Username already exists");
         }
+        if (email == null || email.isBlank()) {
+            return new LoginResponseDTO(null, "Error: Email is required");
+        }
+        if (userService.existsByEmail(email)) {
+            return new LoginResponseDTO(null, "Error: Email already exists");
+        }
+
         AppUser appUser = new AppUser();
         appUser.setName(appUserDTO.getName());
-        appUser.setEmail(appUserDTO.getEmail());
+        appUser.setEmail(email);
         appUser.setPassword(passwordEncoder.encode(appUserDTO.getPassword()));
-        appUser.setRole(appUserDTO.getRole());
+        // Public registration must never allow a client to grant itself privileges.
+        appUser.setRole(AppUser.Role.VIEWER);
 
         AppUser savedUser = userService.saveUser(appUser);
         demoWorkspaceService.createDemoWorkspace(savedUser);
@@ -43,15 +56,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponseDTO loginUser(LoginRequestDTO loginRequestDTO) {
         try {
+            String email = loginRequestDTO.getEmail().trim().toLowerCase(Locale.ROOT);
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequestDTO.getEmail(),
-                            loginRequestDTO.getPassword()));
-            String token = jwtUtil.generateToken(loginRequestDTO.getEmail());
+                    new UsernamePasswordAuthenticationToken(email, loginRequestDTO.getPassword()));
+            String token = jwtUtil.generateToken(email);
             return new LoginResponseDTO(token, "Success");
         } catch (BadCredentialsException e) {
-            return new LoginResponseDTO(null,
-                    "Error: Invalid Username or Password");
+            return new LoginResponseDTO(null, "Error: Invalid Username or Password");
         }
     }
 }
