@@ -123,6 +123,8 @@ public class MonitoringServiceImpl implements MonitoringService {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(timeout);
         requestFactory.setReadTimeout(timeout);
+        // A redirect can bypass the URL validation above and reach an internal address.
+        requestFactory.setInstanceFollowRedirects(false);
 
         RestTemplate client = new RestTemplate(requestFactory);
         // Do not throw exceptions on 4xx/5xx so we can check expectedStatusCodes accurately
