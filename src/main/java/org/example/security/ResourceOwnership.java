@@ -1,6 +1,10 @@
 package org.example.security;
 
 import org.example.entity.ApiService;
+import org.example.entity.Alerts;
+import org.example.entity.Metrics;
+import org.example.entity.AlertRule;
+import org.example.entity.ServiceDependency;
 import org.example.entity.Endpoint;
 import org.example.entity.Project;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,6 +29,24 @@ public final class ResourceOwnership {
     public static boolean isCurrentUser(Endpoint endpoint) {
         return endpoint != null && endpoint.getApiService() != null
                 && isCurrentUser(endpoint.getApiService());
+    }
+
+    public static boolean isCurrentUser(Alerts alert) {
+        return alert != null && isCurrentUser(alert.getEndpoint());
+    }
+
+    public static boolean isCurrentUser(Metrics metric) {
+        return metric != null && isCurrentUser(metric.getEndpoint());
+    }
+
+    public static boolean isCurrentUser(AlertRule rule) {
+        return rule != null && (rule.getEndpoint() != null
+                ? isCurrentUser(rule.getEndpoint())
+                : rule.getApiService() != null && isCurrentUser(rule.getApiService()));
+    }
+
+    public static boolean isCurrentUser(ServiceDependency dependency) {
+        return dependency != null && isCurrentUser(dependency.getProject());
     }
 
     public static void requireOwner(Project project) {
