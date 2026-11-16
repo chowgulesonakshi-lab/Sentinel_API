@@ -3,6 +3,8 @@ package org.example.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dto.AIAnalysisResponse;
 import org.example.entity.Alerts;
+import org.example.entity.AppUser;
+import org.example.entity.Project;
 import org.example.entity.ApiService;
 import org.example.entity.Endpoint;
 import org.example.entity.Metrics;
@@ -17,6 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.junit.jupiter.api.AfterEach;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,8 +47,23 @@ public class AIServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("owner@example.com", "password", "ROLE_VIEWER"));
         incidentContextBuilder = new IncidentContextBuilder(metricRepository, endpointRepository, alertsRepository);
         aiService = new AIServiceImpl(new ObjectMapper(), alertsRepository, metricRepository, endpointRepository, incidentContextBuilder);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private Project ownedProject() {
+        AppUser owner = new AppUser();
+        owner.setEmail("owner@example.com");
+        Project project = new Project();
+        project.setOwner(owner);
+        return project;
     }
 
     @Test
@@ -51,6 +71,7 @@ public class AIServiceTest {
         ApiService service = new ApiService();
         service.setId(1L);
         service.setName("Checkout Service");
+        service.setProject(ownedProject());
 
         Endpoint endpoint = new Endpoint();
         endpoint.setId(10L);
@@ -112,6 +133,7 @@ public class AIServiceTest {
         ApiService service = new ApiService();
         service.setId(1L);
         service.setName("Payment Gateway");
+        service.setProject(ownedProject());
 
         Endpoint endpoint = new Endpoint();
         endpoint.setId(20L);
