@@ -7,7 +7,7 @@ CREATE TABLE app_user (
     name VARCHAR(255),
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255),
-    role VARCHAR(32)
+    role VARCHAR(255)
 );
 
 CREATE TABLE project (
@@ -23,12 +23,12 @@ CREATE TABLE api_service (
     name VARCHAR(255),
     description VARCHAR(255),
     project_id BIGINT REFERENCES project(id),
-    status VARCHAR(32)
+    status VARCHAR(255)
 );
 
 CREATE TABLE endpoints (
     id BIGSERIAL PRIMARY KEY,
-    method VARCHAR(16),
+    method VARCHAR(255),
     url VARCHAR(255),
     timeout_millis INTEGER,
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -50,9 +50,9 @@ CREATE TABLE endpoints (
 CREATE TABLE alert_rules (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    condition_type VARCHAR(64) NOT NULL,
+    condition_type VARCHAR(255) NOT NULL,
     condition_parameters TEXT,
-    severity VARCHAR(32) NOT NULL,
+    severity VARCHAR(255) NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     endpoint_id BIGINT REFERENCES endpoints(id),
     service_id BIGINT REFERENCES api_service(id),
@@ -68,15 +68,15 @@ CREATE TABLE metrics (
     status_code INTEGER,
     time_stamp TIMESTAMP,
     endpoint_id BIGINT REFERENCES endpoints(id),
-    status VARCHAR(16)
+    status VARCHAR(255)
 );
 
 CREATE TABLE alerts (
     id BIGSERIAL PRIMARY KEY,
     endpoint_id BIGINT REFERENCES endpoints(id),
     rule_id BIGINT REFERENCES alert_rules(id),
-    severity VARCHAR(32),
-    type VARCHAR(64),
+    severity VARCHAR(255),
+    type VARCHAR(255),
     message VARCHAR(255),
     resolved BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP,
