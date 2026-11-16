@@ -80,7 +80,7 @@ public final class ResourceOwnership {
         if (authentication == null || !authentication.isAuthenticated()
                 || authentication.getName() == null
                 || "anonymousUser".equals(authentication.getName())) {
-            throw new AccessDeniedException("Authentication required");
+            return null;
         }
         return authentication.getName().trim().toLowerCase(Locale.ROOT);
     }
