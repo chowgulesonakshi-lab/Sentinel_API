@@ -123,7 +123,6 @@ public class MonitoringServiceImpl implements MonitoringService {
         requestFactory.setConnectTimeout(timeout);
         requestFactory.setReadTimeout(timeout);
 
-        EndpointUrlValidator.validatePublicHttpUrl(endpoint.getUrl());
         RestTemplate client = new RestTemplate(requestFactory);
         // Do not throw exceptions on 4xx/5xx so we can check expectedStatusCodes accurately
         client.setErrorHandler(new DefaultResponseErrorHandler() {
@@ -142,6 +141,10 @@ public class MonitoringServiceImpl implements MonitoringService {
 
         long startTime = System.currentTimeMillis();
         try {
+            // Validate inside the monitoring try/catch so rejected URLs are recorded
+            // as failed checks and still participate in consecutive-failure alerting.
+            EndpointUrlValidator.validatePublicHttpUrl(endpoint.getUrl());
+
             ResponseEntity<String> response = client.exchange(
                     endpoint.getUrl(),
                     HttpMethod.valueOf(endpoint.getMethod().name()),
