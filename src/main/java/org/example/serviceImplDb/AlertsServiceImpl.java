@@ -133,7 +133,7 @@ public class AlertsServiceImpl implements AlertsService {
     public AlertsResponseDTO resolveAlert(Long alertId) {
         Alerts alert = alertsRepository.findById(alertId)
                 .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
-        org.example.security.ResourceOwnership.requireOwner(alert.getEndpoint());
+        org.example.security.ResourceOwnership.requireOwner(alert);
         alert.setResolved(true);
         alert.setResolvedAt(java.time.LocalDateTime.now());
         Alerts saved = alertsRepository.save(alert);
