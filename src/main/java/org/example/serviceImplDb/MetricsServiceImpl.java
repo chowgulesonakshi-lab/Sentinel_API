@@ -12,6 +12,9 @@ import org.example.dto.MetricsResponseDTO;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -104,29 +107,47 @@ public class MetricsServiceImpl implements MetricsService {
                 .toList();
     }
 
+    private List<Metrics> ownedMetrics() {
+        return metricRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .toList();
+    }
+
+    private List<Metrics> latestOwnedMetrics() {
+        return ownedMetrics().stream()
+                .filter(metric -> metric.getEndpoint() != null)
+                .collect(Collectors.toMap(metric -> metric.getEndpoint().getId(), metric -> metric,
+                        (a, b) -> Comparator.nullsFirst(LocalDateTime::compareTo)
+                                .compare(a.getTimeStamp(), b.getTimeStamp()) >= 0 ? a : b))
+                .values().stream().toList();
+    }
+
     @Override
     public long getUpCount() {
-        return metricRepository.countLatestByStatus(Metrics.HealthStatus.UP);
+        return latestOwnedMetrics().stream().filter(m -> m.getStatus() == Metrics.HealthStatus.UP).count();
     }
 
     @Override
     public long getDownCount() {
-        return metricRepository.countLatestByStatus(Metrics.HealthStatus.DOWN);
+        return latestOwnedMetrics().stream().filter(m -> m.getStatus() == Metrics.HealthStatus.DOWN).count();
     }
 
     @Override
     public long getFailedChecksCount() {
-        return metricRepository.countBySuccessFalse();
+        return ownedMetrics().stream().filter(m -> !m.isSuccess()).count();
     }
 
     @Override
     public Double getAverageResponseTime() {
-        return metricRepository.getAverageResponseTime();
+        return ownedMetrics().stream().filter(Metrics::isSuccess)
+                .map(Metrics::getResponseTime).filter(java.util.Objects::nonNull)
+                .mapToDouble(Double::doubleValue).average().orElse(0.0);
     }
 
     @Override
     public LocalDateTime getLastHealthCheck() {
-        return metricRepository.getLastHealthCheck();
+        return ownedMetrics().stream().map(Metrics::getTimeStamp)
+                .filter(java.util.Objects::nonNull).max(LocalDateTime::compareTo).orElse(null);
     }
 
     @Override
@@ -138,6 +159,7 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public long getSlowApisCount() {
-        return metricRepository.countLatestSlowApis(1000);
+        return latestOwnedMetrics().stream()
+                .filter(m -> m.getResponseTime() != null && m.getResponseTime() >= 1000).count();
     }
 }
