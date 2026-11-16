@@ -24,7 +24,9 @@ import org.example.service.anomaly.AnomalyDetectionResult;
 import org.example.service.anomaly.AnomalyDetectionService;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -120,11 +122,16 @@ public class MonitoringServiceImpl implements MonitoringService {
                 ? endpoint.getTimeoutMillis()
                 : 5000;
 
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+                super.prepareConnection(connection, httpMethod);
+                // A redirect can bypass URL validation and reach an internal address.
+                connection.setInstanceFollowRedirects(false);
+            }
+        };
         requestFactory.setConnectTimeout(timeout);
         requestFactory.setReadTimeout(timeout);
-        // A redirect can bypass the URL validation above and reach an internal address.
-        requestFactory.setInstanceFollowRedirects(false);
 
         RestTemplate client = new RestTemplate(requestFactory);
         // Do not throw exceptions on 4xx/5xx so we can check expectedStatusCodes accurately
