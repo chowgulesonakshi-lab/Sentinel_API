@@ -53,7 +53,11 @@ public class AlertRuleServiceImpl implements AlertRuleService {
 
     @Override
     public AlertRuleResponseDTO createRule(AlertRuleRequestDTO requestDTO) {
+        if (requestDTO.getEndpointId() == null && requestDTO.getApiServiceId() == null) {
+            throw new IllegalArgumentException("An alert rule must belong to an owned endpoint or API service");
+        }
         AlertRule rule = new AlertRule();
+        org.example.security.ResourceOwnership.requireOwner(rule);
         rule.setName(requestDTO.getName());
         rule.setConditionType(requestDTO.getConditionType());
         rule.setConditionParameters(requestDTO.getConditionParameters());
@@ -64,11 +68,13 @@ public class AlertRuleServiceImpl implements AlertRuleService {
         if (requestDTO.getEndpointId() != null) {
             Endpoint endpoint = endpointRepository.findById(requestDTO.getEndpointId())
                     .orElseThrow(() -> new RuntimeException("Endpoint not found with ID: " + requestDTO.getEndpointId()));
+            org.example.security.ResourceOwnership.requireOwner(endpoint);
             rule.setEndpoint(endpoint);
             rule.setApiService(endpoint.getApiService());
         } else if (requestDTO.getApiServiceId() != null) {
             ApiService service = apiServiceRepository.findById(requestDTO.getApiServiceId())
                     .orElseThrow(() -> new RuntimeException("API Service not found with ID: " + requestDTO.getApiServiceId()));
+            org.example.security.ResourceOwnership.requireOwner(service);
             rule.setApiService(service);
         }
 
@@ -113,33 +119,43 @@ public class AlertRuleServiceImpl implements AlertRuleService {
     public void deleteRule(Long id) {
         AlertRule rule = alertRuleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Alert Rule not found with ID: " + id));
+        org.example.security.ResourceOwnership.requireOwner(rule);
         alertRuleRepository.delete(rule);
     }
 
     @Override
     public List<AlertRuleResponseDTO> getAllRules() {
-        return alertRuleRepository.findAll().stream().map(this::mapToDTO).toList();
+        return alertRuleRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public Optional<AlertRuleResponseDTO> getRuleById(Long id) {
-        return alertRuleRepository.findById(id).map(this::mapToDTO);
+        return alertRuleRepository.findById(id)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO);
     }
 
     @Override
     public List<AlertRuleResponseDTO> getRulesByEndpoint(Long endpointId) {
-        return alertRuleRepository.findByEndpointId(endpointId).stream().map(this::mapToDTO).toList();
+        return alertRuleRepository.findByEndpointId(endpointId).stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public List<AlertRuleResponseDTO> getRulesByService(Long serviceId) {
-        return alertRuleRepository.findByApiServiceId(serviceId).stream().map(this::mapToDTO).toList();
+        return alertRuleRepository.findByApiServiceId(serviceId).stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public AlertRuleResponseDTO toggleRule(Long id) {
         AlertRule rule = alertRuleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Alert Rule not found with ID: " + id));
+        org.example.security.ResourceOwnership.requireOwner(rule);
         rule.setEnabled(!rule.isEnabled());
         AlertRule saved = alertRuleRepository.save(rule);
         return mapToDTO(saved);
