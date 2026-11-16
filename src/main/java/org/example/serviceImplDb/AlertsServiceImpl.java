@@ -114,12 +114,14 @@ public class AlertsServiceImpl implements AlertsService {
 
     @Override
     public long getActiveAlertCount() {
-        return alertsRepository.countByResolvedFalse();
+        return alertsRepository.findByResolvedFalse().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).count();
     }
 
     @Override
     public long getCriticalAlertCount() {
-        return alertsRepository.countBySeverity(Alerts.Severity.CRITICAL);
+        return alertsRepository.findBySeverity(Alerts.Severity.CRITICAL).stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).count();
     }
 
     @Override
