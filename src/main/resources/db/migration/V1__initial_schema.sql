@@ -29,7 +29,7 @@ CREATE TABLE api_service (
 CREATE TABLE endpoints (
     id BIGSERIAL PRIMARY KEY,
     method VARCHAR(16),
-    url VARCHAR(2048),
+    url VARCHAR(255),
     timeout_millis INTEGER,
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     interval_seconds INTEGER,
