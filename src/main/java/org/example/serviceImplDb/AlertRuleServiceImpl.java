@@ -57,7 +57,6 @@ public class AlertRuleServiceImpl implements AlertRuleService {
             throw new IllegalArgumentException("An alert rule must belong to an owned endpoint or API service");
         }
         AlertRule rule = new AlertRule();
-        org.example.security.ResourceOwnership.requireOwner(rule);
         rule.setName(requestDTO.getName());
         rule.setConditionType(requestDTO.getConditionType());
         rule.setConditionParameters(requestDTO.getConditionParameters());
@@ -86,6 +85,10 @@ public class AlertRuleServiceImpl implements AlertRuleService {
     public AlertRuleResponseDTO updateRule(Long id, AlertRuleRequestDTO requestDTO) {
         AlertRule rule = alertRuleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Alert Rule not found with ID: " + id));
+        org.example.security.ResourceOwnership.requireOwner(rule);
+        if (requestDTO.getEndpointId() == null && requestDTO.getApiServiceId() == null) {
+            throw new IllegalArgumentException("An alert rule must belong to an owned endpoint or API service");
+        }
 
         rule.setName(requestDTO.getName());
         rule.setConditionType(requestDTO.getConditionType());
@@ -99,11 +102,13 @@ public class AlertRuleServiceImpl implements AlertRuleService {
         if (requestDTO.getEndpointId() != null) {
             Endpoint endpoint = endpointRepository.findById(requestDTO.getEndpointId())
                     .orElseThrow(() -> new RuntimeException("Endpoint not found with ID: " + requestDTO.getEndpointId()));
+            org.example.security.ResourceOwnership.requireOwner(endpoint);
             rule.setEndpoint(endpoint);
             rule.setApiService(endpoint.getApiService());
         } else if (requestDTO.getApiServiceId() != null) {
             ApiService service = apiServiceRepository.findById(requestDTO.getApiServiceId())
                     .orElseThrow(() -> new RuntimeException("API Service not found with ID: " + requestDTO.getApiServiceId()));
+            org.example.security.ResourceOwnership.requireOwner(service);
             rule.setApiService(service);
             rule.setEndpoint(null);
         } else {
