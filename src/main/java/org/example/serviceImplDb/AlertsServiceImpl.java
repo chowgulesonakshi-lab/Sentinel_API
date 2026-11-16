@@ -55,6 +55,7 @@ public class AlertsServiceImpl implements AlertsService {
     public List<AlertsResponseDTO> getAllAlerts() {
         return alertsRepository.findAll()
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -62,6 +63,7 @@ public class AlertsServiceImpl implements AlertsService {
     @Override
     public Optional<AlertsResponseDTO> getAlertById(Long id) {
         return alertsRepository.findById(id)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO);
     }
 
@@ -69,6 +71,7 @@ public class AlertsServiceImpl implements AlertsService {
     public List<AlertsResponseDTO> getActiveAlerts() {
         return alertsRepository.findByResolvedFalse()
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -77,6 +80,7 @@ public class AlertsServiceImpl implements AlertsService {
     public List<AlertsResponseDTO> getResolvedAlerts() {
         return alertsRepository.findByResolvedTrue()
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -85,6 +89,7 @@ public class AlertsServiceImpl implements AlertsService {
     public List<AlertsResponseDTO> getAlertsByEndpoint(Long endpointId) {
         return alertsRepository.findByEndpointId(endpointId)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -93,6 +98,7 @@ public class AlertsServiceImpl implements AlertsService {
     public List<AlertsResponseDTO> getAlertsBySeverity(Alerts.Severity severity) {
         return alertsRepository.findBySeverity(severity)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -101,6 +107,7 @@ public class AlertsServiceImpl implements AlertsService {
     public List<AlertsResponseDTO> getRecentAlerts() {
         return alertsRepository.findTop10ByOrderByCreatedAtDesc()
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -124,6 +131,7 @@ public class AlertsServiceImpl implements AlertsService {
     public AlertsResponseDTO resolveAlert(Long alertId) {
         Alerts alert = alertsRepository.findById(alertId)
                 .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        org.example.security.ResourceOwnership.requireOwner(alert.getEndpoint());
         alert.setResolved(true);
         alert.setResolvedAt(java.time.LocalDateTime.now());
         Alerts saved = alertsRepository.save(alert);
