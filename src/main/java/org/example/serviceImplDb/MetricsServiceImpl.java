@@ -56,6 +56,7 @@ public class MetricsServiceImpl implements MetricsService {
     public List<MetricsResponseDTO> getAllMetrics() {
         return metricRepository.findAll()
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -63,6 +64,7 @@ public class MetricsServiceImpl implements MetricsService {
     @Override
     public Optional<MetricsResponseDTO> getMetricById(Long id) {
         return metricRepository.findById(id)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO);
     }
 
@@ -70,6 +72,7 @@ public class MetricsServiceImpl implements MetricsService {
     public List<MetricsResponseDTO> getMetricsByEndpoint(Long endpointId) {
         return metricRepository.findByEndpointId(endpointId)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -78,6 +81,7 @@ public class MetricsServiceImpl implements MetricsService {
     public List<MetricsResponseDTO> getSlowMetrics(double responseTime) {
         return metricRepository.findByResponseTimeGreaterThan(responseTime)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -86,6 +90,7 @@ public class MetricsServiceImpl implements MetricsService {
     public List<MetricsResponseDTO> getMetricsByStatusCode(int statusCode) {
         return metricRepository.findByStatusCode(statusCode)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -94,6 +99,7 @@ public class MetricsServiceImpl implements MetricsService {
     public List<MetricsResponseDTO> getLatestMetrics() {
         return metricRepository.findTop10ByOrderByTimeStampDesc()
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -126,6 +132,7 @@ public class MetricsServiceImpl implements MetricsService {
     @Override
     public Optional<MetricsResponseDTO> getLatestMetricForEndpoint(Long endpointId) {
         return metricRepository.findTopByEndpoint_IdOrderByTimeStampDesc(endpointId)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO);
     }
 
