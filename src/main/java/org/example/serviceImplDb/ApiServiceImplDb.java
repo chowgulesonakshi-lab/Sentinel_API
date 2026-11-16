@@ -48,6 +48,7 @@ public class ApiServiceImplDb implements ApiService_Service {
     public ApiServiceResponseDTO addService(ApiServiceRequestDTO requestDTO) {
         Project project = projectRepository.findById(requestDTO.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
+        org.example.security.ResourceOwnership.requireOwner(project);
         ApiService service = new ApiService();
 
         service.setName(requestDTO.getName());
@@ -62,25 +63,32 @@ public class ApiServiceImplDb implements ApiService_Service {
     @Override
     public List<ApiServiceResponseDTO> getAllServices() {
         return apiServiceRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO).toList();
     }
 
     @Override
     public Optional<ApiServiceResponseDTO> getServiceById(Long id) {
-        return apiServiceRepository.findById(id).map(this::mapToDTO);
+        return apiServiceRepository.findById(id)
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO);
     }
 
     @Override
     public List<ApiServiceResponseDTO> getServiceByName(String name) {
-        return apiServiceRepository.findByName(name).stream().map(this::mapToDTO).toList();
+        return apiServiceRepository.findByName(name).stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .map(this::mapToDTO).toList();
     }
 
     @Override
     public ApiServiceResponseDTO updateService(Long id, ApiServiceRequestDTO requestDTO) {
         ApiService service = apiServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service not found"));
+        org.example.security.ResourceOwnership.requireOwner(service);
         Project project = projectRepository.findById(requestDTO.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
+        org.example.security.ResourceOwnership.requireOwner(project);
 
         service.setName(requestDTO.getName());
         service.setDescription(requestDTO.getDescription());
@@ -96,6 +104,7 @@ public class ApiServiceImplDb implements ApiService_Service {
     public void deleteService(Long id) {
         ApiService service = apiServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service not found"));
+        org.example.security.ResourceOwnership.requireOwner(service);
 
         List<Endpoint> endpoints = endpointRepository.findByApiServiceId(id);
         if (serviceDependencyRepository != null) {
@@ -112,6 +121,7 @@ public class ApiServiceImplDb implements ApiService_Service {
     public List<ApiServiceResponseDTO> getServiceByStatus(ApiService.ServiceStatus status) {
         return apiServiceRepository.findByStatus(status)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -119,8 +129,12 @@ public class ApiServiceImplDb implements ApiService_Service {
 
     @Override
     public List<ApiServiceResponseDTO> getServicesByProject_Id(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        org.example.security.ResourceOwnership.requireOwner(project);
         return apiServiceRepository.findByProjectId(projectId)
                 .stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
                 .map(this::mapToDTO)
                 .toList();
     }
