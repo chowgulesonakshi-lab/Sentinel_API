@@ -32,7 +32,9 @@ public final class ResourceOwnership {
     }
 
     public static boolean isCurrentUser(Alerts alert) {
-        return alert != null && isCurrentUser(alert.getEndpoint());
+        return alert != null && (alert.getEndpoint() != null
+                ? isCurrentUser(alert.getEndpoint())
+                : alert.getRule() != null && isCurrentUser(alert.getRule()));
     }
 
     public static boolean isCurrentUser(Metrics metric) {
@@ -47,6 +49,10 @@ public final class ResourceOwnership {
 
     public static boolean isCurrentUser(ServiceDependency dependency) {
         return dependency != null && isCurrentUser(dependency.getProject());
+    }
+
+    public static void requireOwner(Alerts alert) {
+        if (!isCurrentUser(alert)) throw new AccessDeniedException("Resource not found");
     }
 
     public static void requireOwner(AlertRule rule) {
