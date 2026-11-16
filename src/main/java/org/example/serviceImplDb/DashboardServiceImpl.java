@@ -13,6 +13,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -27,19 +31,31 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardResponseDTO getDashboardSummary() {
         DashboardResponseDTO response = new DashboardResponseDTO();
-        response.setTotalProjects(projectRepository.count());
-        response.setTotalApiServices(apiServiceRepository.count());
-        response.setTotalEndpoints(endpointRepository.count());
+        response.setTotalProjects(projectRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).count());
+        response.setTotalApiServices(apiServiceRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).count());
+        response.setTotalEndpoints(endpointRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).count());
 
-        response.setSuccessfulChecks(metricRepository.countLatestByStatus(Metrics.HealthStatus.UP));
-        response.setFailedChecks(metricRepository.countLatestByStatus(Metrics.HealthStatus.DOWN));
-
-        Double avg = metricRepository.getAverageResponseTime();
-        response.setAverageResponseTime(avg!=null ? avg:0.0);
-
-        response.setLastHealthCheck(metricRepository.getLastHealthCheck());
-        List<Alerts> activeAlerts =
-                alertsRepository.findByResolvedFalse();
+        List<Metrics> ownedMetrics = metricRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).toList();
+        Map<Long, Metrics> latestByEndpoint = ownedMetrics.stream()
+                .filter(m -> m.getEndpoint() != null)
+                .collect(Collectors.toMap(m -> m.getEndpoint().getId(), m -> m,
+                        (a, b) -> a.getTimeStamp().isAfter(b.getTimeStamp()) ? a : b));
+        response.setSuccessfulChecks(latestByEndpoint.values().stream()
+                .filter(m -> m.getStatus() == Metrics.HealthStatus.UP).count());
+        response.setFailedChecks(latestByEndpoint.values().stream()
+                .filter(m -> m.getStatus() == Metrics.HealthStatus.DOWN).count());
+        double avg = ownedMetrics.stream().filter(Metrics::isSuccess)
+                .map(Metrics::getResponseTime).filter(java.util.Objects::nonNull)
+                .mapToDouble(Double::doubleValue).average().orElse(0.0);
+        response.setAverageResponseTime(avg);
+        response.setLastHealthCheck(ownedMetrics.stream().map(Metrics::getTimeStamp)
+                .filter(java.util.Objects::nonNull).max(LocalDateTime::compareTo).orElse(null));
+        List<Alerts> activeAlerts = alertsRepository.findByResolvedFalse().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).toList();
         response.setAlerts(activeAlerts);
         response.setActiveAlerts(activeAlerts.size());
 
@@ -48,7 +64,10 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<MetricsResponseDTO> getRecentMetrics() {
-        List<Metrics> metrics = metricRepository.findTop10ByOrderByTimeStampDesc();
+        List<Metrics> metrics = metricRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser)
+                .sorted(Comparator.comparing(Metrics::getTimeStamp, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(10).toList();
         List<MetricsResponseDTO> dtoList = new ArrayList<>();
         for (Metrics metric : metrics) {
             MetricsResponseDTO dto = new MetricsResponseDTO();
@@ -71,7 +90,8 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<ApiHealthDTO> getApiHealth() {
-        List<Endpoint> endpoints = endpointRepository.findAll();
+        List<Endpoint> endpoints = endpointRepository.findAll().stream()
+                .filter(org.example.security.ResourceOwnership::isCurrentUser).toList();
         return endpoints.stream().map(endpoint -> {
             ApiHealthDTO dto = new ApiHealthDTO();
             dto.setId(endpoint.getId());
