@@ -43,7 +43,8 @@ public class DashboardServiceImpl implements DashboardService {
         Map<Long, Metrics> latestByEndpoint = ownedMetrics.stream()
                 .filter(m -> m.getEndpoint() != null)
                 .collect(Collectors.toMap(m -> m.getEndpoint().getId(), m -> m,
-                        (a, b) -> a.getTimeStamp().isAfter(b.getTimeStamp()) ? a : b));
+                        (a, b) -> Comparator.nullsFirst(LocalDateTime::compareTo)
+                                .compare(a.getTimeStamp(), b.getTimeStamp()) >= 0 ? a : b));
         response.setSuccessfulChecks(latestByEndpoint.values().stream()
                 .filter(m -> m.getStatus() == Metrics.HealthStatus.UP).count());
         response.setFailedChecks(latestByEndpoint.values().stream()
