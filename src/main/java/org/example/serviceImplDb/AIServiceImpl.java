@@ -56,7 +56,7 @@ public class AIServiceImpl implements AIService {
     public AIAnalysisResponse analyzeIncident(Long alertId) {
         Alerts alert = alertsRepository.findById(alertId)
                 .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
-        org.example.security.ResourceOwnership.requireOwner(alert.getEndpoint());
+        org.example.security.ResourceOwnership.requireOwner(alert);
 
         IncidentContext context = incidentContextBuilder.buildContext(alert);
         String prompt = buildPrompt(context);
