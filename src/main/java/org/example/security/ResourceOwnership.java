@@ -49,6 +49,14 @@ public final class ResourceOwnership {
         return dependency != null && isCurrentUser(dependency.getProject());
     }
 
+    public static void requireOwner(AlertRule rule) {
+        if (!isCurrentUser(rule)) throw new AccessDeniedException("Resource not found");
+    }
+
+    public static void requireOwner(ServiceDependency dependency) {
+        if (!isCurrentUser(dependency)) throw new AccessDeniedException("Resource not found");
+    }
+
     public static void requireOwner(Project project) {
         if (!isCurrentUser(project)) throw new AccessDeniedException("Resource not found");
     }
