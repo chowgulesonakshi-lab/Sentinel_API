@@ -11,6 +11,7 @@ import org.example.repository.MetricRepository;
 import org.example.service.AIService;
 import org.example.service.ai.IncidentContext;
 import org.example.service.ai.IncidentContextBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -26,6 +27,7 @@ public class AIServiceImpl implements AIService {
     private final AlertsRepository alertsRepository;
     private final IncidentContextBuilder incidentContextBuilder;
 
+    @Autowired
     public AIServiceImpl(ObjectMapper objectMapper,
                          AlertsRepository alertsRepository,
                          MetricRepository metricRepository,
@@ -205,34 +207,18 @@ public class AIServiceImpl implements AIService {
                 }
                 Do not include markdown codeblocks or text outside the JSON.
                 """,
-                context.getAlertId(),
-                context.getAlertType(),
-                context.getSeverity(),
-                context.getAlertMessage(),
-                context.getRuleName() != null ? context.getRuleName() : "System Threshold",
-                context.getProjectName(),
-                context.getServiceName(),
-                context.getEndpointMethod(),
-                context.getEndpointUrl(),
-                context.getTimeoutMillis(),
-                context.getIntervalSeconds(),
-                context.getExpectedStatusCodes(),
-                context.getSlowResponseThresholdMillis(),
-                context.getConsecutiveFailuresThreshold(),
-                context.getConsecutiveFailuresCount(),
+                context.getAlertId(), context.getAlertType(), context.getSeverity(), context.getAlertMessage(),
+                context.getRuleName() != null ? context.getRuleName() : "System Threshold", context.getProjectName(),
+                context.getServiceName(), context.getEndpointMethod(), context.getEndpointUrl(), context.getTimeoutMillis(),
+                context.getIntervalSeconds(), context.getExpectedStatusCodes(), context.getSlowResponseThresholdMillis(),
+                context.getConsecutiveFailuresThreshold(), context.getConsecutiveFailuresCount(),
                 context.getCurrentResponseTime() != null ? String.format("%.0f", context.getCurrentResponseTime()) : "N/A",
                 context.getCurrentStatusCode() != null ? String.valueOf(context.getCurrentStatusCode()) : "N/A",
                 context.getHistoricalBaselineAvgResponseTime() != null ? String.format("%.0f", context.getHistoricalBaselineAvgResponseTime()) : "N/A",
                 context.getLatencyDeviationPercent() != null ? String.format("%.1f", context.getLatencyDeviationPercent()) : "0",
-                context.getStatusCodeDistribution(),
-                timeline,
-                siblings,
-                context.getDirectDependencies(),
-                context.getIndirectDependencies(),
-                context.getPotentiallyAffectedServices(),
-                context.getEndpointMethod(), context.getEndpointUrl(),
-                context.getServiceName()
-        );
+                context.getStatusCodeDistribution(), timeline, siblings, context.getDirectDependencies(),
+                context.getIndirectDependencies(), context.getPotentiallyAffectedServices(), context.getEndpointMethod(),
+                context.getEndpointUrl(), context.getServiceName());
     }
 
     private List<String> buildEmpiricalEvidenceList(IncidentContext context) {
@@ -255,7 +241,6 @@ public class AIServiceImpl implements AIService {
                     context.getConsecutiveFailuresCount(), context.getConsecutiveFailuresThreshold()));
         }
 
-        // Check sibling endpoints
         if (context.getSiblingEndpoints() != null && !context.getSiblingEndpoints().isEmpty()) {
             long failingSiblings = context.getSiblingEndpoints().stream().filter(s -> s.isHasActiveAlert() || (s.getLastStatusCode() != null && s.getLastStatusCode() >= 500)).count();
             if (failingSiblings > 0) {
@@ -266,7 +251,6 @@ public class AIServiceImpl implements AIService {
                         context.getServiceName()));
             }
         }
-
         return evidence;
     }
 
@@ -274,103 +258,47 @@ public class AIServiceImpl implements AIService {
         AIAnalysisResponse fallback = new AIAnalysisResponse();
         fallback.setSeverity(alert.getSeverity() != null ? alert.getSeverity().name() : "CRITICAL");
         fallback.setAiModel("Sentinel Empirical Telemetry Engine (LLM Offline Fallback)");
-
         List<String> evidence = buildEmpiricalEvidenceList(context);
         fallback.setSupportingEvidence(evidence);
-
         Integer status = context.getCurrentStatusCode();
         Double latency = context.getCurrentResponseTime();
 
         if (status != null && status == 504) {
-            fallback.setSummary(String.format("Gateway Timeout (HTTP 504) on %s %s: Request exceeded %d ms limit.",
-                    context.getEndpointMethod(), context.getEndpointUrl(), context.getTimeoutMillis()));
+            fallback.setSummary(String.format("Gateway Timeout (HTTP 504) on %s %s: Request exceeded %d ms limit.", context.getEndpointMethod(), context.getEndpointUrl(), context.getTimeoutMillis()));
             fallback.setLikelyCause("Upstream server or database query stalled, causing gateway reverse proxy timeout.");
-            fallback.setPossibleCauses(List.of(
-                    "Database connection pool exhaustion or unindexed query lock",
-                    "Downstream microservice dependency failure or network timeout",
-                    "Thread pool saturation on application server"
-            ));
+            fallback.setPossibleCauses(List.of("Database connection pool exhaustion or unindexed query lock", "Downstream microservice dependency failure or network timeout", "Thread pool saturation on application server"));
             fallback.setRecommendation("Check backend server thread pools, active DB lock contention, and reverse-proxy timeout thresholds.");
-            fallback.setInvestigationSteps(List.of(
-                    "1. Inspect application thread dump for BLOCKED or WAITING database connections.",
-                    "2. Check reverse proxy (Nginx/Gateway) timeout settings against backend response times.",
-                    "3. Review database slow query logs for unindexed long-running queries around " + context.getAlertCreatedAt()
-            ));
-            fallback.setRemediationActions(List.of(
-                    "Temporarily increase timeout limit or scale backend service replicas.",
-                    "Implement circuit breaker (Resilience4j) to fail fast on unresponsive dependencies.",
-                    "Restart saturated application containers if thread deadlocks are identified."
-            ));
+            fallback.setInvestigationSteps(List.of("1. Inspect application thread dump for BLOCKED or WAITING database connections.", "2. Check reverse proxy (Nginx/Gateway) timeout settings against backend response times.", "3. Review database slow query logs for unindexed long-running queries around " + context.getAlertCreatedAt()));
+            fallback.setRemediationActions(List.of("Temporarily increase timeout limit or scale backend service replicas.", "Implement circuit breaker (Resilience4j) to fail fast on unresponsive dependencies.", "Restart saturated application containers if thread deadlocks are identified."));
             fallback.setConfidence(85);
             fallback.setConfidenceExplanation("High confidence based on exact HTTP 504 Gateway Timeout and latency exceeding configured limit.");
-
         } else if (status != null && status == 503) {
-            fallback.setSummary(String.format("Service Unavailable (HTTP 503): %s %s refused connection.",
-                    context.getEndpointMethod(), context.getEndpointUrl()));
+            fallback.setSummary(String.format("Service Unavailable (HTTP 503): %s %s refused connection.", context.getEndpointMethod(), context.getEndpointUrl()));
             fallback.setLikelyCause("Service process is stopped, restarting, or rejecting connections due to capacity limits.");
-            fallback.setPossibleCauses(List.of(
-                    "Application process crashed or OOMKilled (Out of Memory)",
-                    "Service pod is in CrashLoopBackOff or restart cycle",
-                    "Network security group or firewall blocking inbound traffic"
-            ));
+            fallback.setPossibleCauses(List.of("Application process crashed or OOMKilled (Out of Memory)", "Service pod is in CrashLoopBackOff or restart cycle", "Network security group or firewall blocking inbound traffic"));
             fallback.setRecommendation("Verify container/process status and inspect host memory and CPU utilization.");
-            fallback.setInvestigationSteps(List.of(
-                    "1. Run `docker ps` or `kubectl get pods` to verify container health.",
-                    "2. Check system error logs (`journalctl` / `kubectl logs`) for OutOfMemory (OOM) errors.",
-                    "3. Verify network ingress routing and load balancer target group health checks."
-            ));
-            fallback.setRemediationActions(List.of(
-                    "Restart the service process or allocate increased memory limits.",
-                    "Redeploy previous stable build if recent deployment caused crash on startup."
-            ));
+            fallback.setInvestigationSteps(List.of("1. Run `docker ps` or `kubectl get pods` to verify container health.", "2. Check system error logs (`journalctl` / `kubectl logs`) for OutOfMemory (OOM) errors.", "3. Verify network ingress routing and load balancer target group health checks."));
+            fallback.setRemediationActions(List.of("Restart the service process or allocate increased memory limits.", "Redeploy previous stable build if recent deployment caused crash on startup."));
             fallback.setConfidence(90);
             fallback.setConfidenceExplanation("High confidence based on connection refusal / 503 status code.");
-
         } else if (status != null && status >= 500) {
-            fallback.setSummary(String.format("Internal Server Error (HTTP %d) on %s %s.",
-                    status, context.getEndpointMethod(), context.getEndpointUrl()));
+            fallback.setSummary(String.format("Internal Server Error (HTTP %d) on %s %s.", status, context.getEndpointMethod(), context.getEndpointUrl()));
             fallback.setLikelyCause("Unhandled server-side exception or unrecoverable application error.");
-            fallback.setPossibleCauses(List.of(
-                    "NullPointerException or unhandled runtime exception in request controller",
-                    "Database syntax error or schema mismatch following recent migration",
-                    "Third-party integration exception or missing environment variable"
-            ));
+            fallback.setPossibleCauses(List.of("NullPointerException or unhandled runtime exception in request controller", "Database syntax error or schema mismatch following recent migration", "Third-party integration exception or missing environment variable"));
             fallback.setRecommendation("Inspect backend application exception stack traces in logs.");
-            fallback.setInvestigationSteps(List.of(
-                    "1. Search application logs for 'ERROR' or 'Exception' around " + context.getAlertCreatedAt(),
-                    "2. Verify recent configuration changes and environment secret bindings.",
-                    "3. Validate request payload against API schema expectations."
-            ));
-            fallback.setRemediationActions(List.of(
-                    "Hotfix unhandled exception handling and return appropriate client status codes.",
-                    "Roll back recent migration if database schema mismatch caused internal failure."
-            ));
+            fallback.setInvestigationSteps(List.of("1. Search application logs for 'ERROR' or 'Exception' around " + context.getAlertCreatedAt(), "2. Verify recent configuration changes and environment secret bindings.", "3. Validate request payload against API schema expectations."));
+            fallback.setRemediationActions(List.of("Hotfix unhandled exception handling and return appropriate client status codes.", "Roll back recent migration if database schema mismatch caused internal failure."));
             fallback.setConfidence(80);
             fallback.setConfidenceExplanation("Confidence based on persistent 5xx HTTP response codes recorded in telemetry.");
-
         } else if (latency != null && latency > context.getSlowResponseThresholdMillis()) {
-            fallback.setSummary(String.format("Performance Degradation: Latency (%.0f ms) exceeded threshold (%d ms).",
-                    latency, context.getSlowResponseThresholdMillis()));
+            fallback.setSummary(String.format("Performance Degradation: Latency (%.0f ms) exceeded threshold (%d ms).", latency, context.getSlowResponseThresholdMillis()));
             fallback.setLikelyCause("Resource contention, garbage collection pauses, or inefficient I/O operations.");
-            fallback.setPossibleCauses(List.of(
-                    "JVM Garbage Collection (GC) stop-the-world pauses",
-                    "CPU throttling on host machine or container",
-                    "High database disk I/O latency or missing indexes"
-            ));
+            fallback.setPossibleCauses(List.of("JVM Garbage Collection (GC) stop-the-world pauses", "CPU throttling on host machine or container", "High database disk I/O latency or missing indexes"));
             fallback.setRecommendation("Profile endpoint execution with APM tooling and inspect host resource metrics.");
-            fallback.setInvestigationSteps(List.of(
-                    "1. Inspect JVM GC metrics for high pause durations.",
-                    "2. Check CPU and memory utilization graphs on the host service.",
-                    "3. Profile database query execution plans (`EXPLAIN ANALYZE`)."
-            ));
-            fallback.setRemediationActions(List.of(
-                    "Add database indexing for queried columns.",
-                    "Tune JVM heap allocation and garbage collector settings (e.g. G1GC).",
-                    "Enable HTTP response caching for static or idempotent query responses."
-            ));
+            fallback.setInvestigationSteps(List.of("1. Inspect JVM GC metrics for high pause durations.", "2. Check CPU and memory utilization graphs on the host service.", "3. Profile database query execution plans (`EXPLAIN ANALYZE`)."));
+            fallback.setRemediationActions(List.of("Add database indexing for queried columns.", "Tune JVM heap allocation and garbage collector settings (e.g. G1GC).", "Enable HTTP response caching for static or idempotent query responses."));
             fallback.setConfidence(75);
             fallback.setConfidenceExplanation("Latency metrics confirmed slow execution, but exact subsystem bottleneck requires APM profiling.");
-
         } else {
             fallback.setSummary(String.format("API Incident Detected: %s", alert.getMessage()));
             fallback.setLikelyCause("Endpoint failure violating configured health thresholds.");
@@ -381,10 +309,8 @@ public class AIServiceImpl implements AIService {
             fallback.setConfidence(65);
             fallback.setConfidenceExplanation("General telemetry-based analysis.");
         }
-
         fallback.setRelatedEndpoints(List.of(context.getEndpointMethod() + " " + context.getEndpointUrl()));
         fallback.setAffectedServices(List.of(context.getServiceName()));
-
         return fallback;
     }
 }
