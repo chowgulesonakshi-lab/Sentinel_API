@@ -3,6 +3,7 @@ package org.example.service;
 import org.example.dto.DependencyImpactResponseDTO;
 import org.example.dto.ServiceDependencyRequestDTO;
 import org.example.entity.ApiService;
+import org.example.entity.AppUser;
 import org.example.entity.Project;
 import org.example.entity.ServiceDependency;
 import org.example.repository.ApiServiceRepository;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +43,8 @@ class ServiceDependencyServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("owner@example.com", "password", "ROLE_VIEWER"));
         service = new ServiceDependencyServiceImpl(dependencyRepository, serviceRepository, projectRepository, endpointRepository, metricRepository);
         project = project(1L);
         a = service(10L, "Order", project);
@@ -95,6 +100,9 @@ class ServiceDependencyServiceTest {
     private Project project(Long id) {
         Project project = new Project();
         project.setId(id);
+        AppUser owner = new AppUser();
+        owner.setEmail("owner@example.com");
+        project.setOwner(owner);
         return project;
     }
 
