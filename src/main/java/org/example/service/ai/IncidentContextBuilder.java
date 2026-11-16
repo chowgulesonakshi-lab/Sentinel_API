@@ -9,6 +9,7 @@ import org.example.repository.AlertsRepository;
 import org.example.repository.EndpointRepository;
 import org.example.repository.MetricRepository;
 import org.example.repository.ServiceDependencyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class IncidentContextBuilder {
 
     private final MetricRepository metricRepository;
@@ -27,6 +27,18 @@ public class IncidentContextBuilder {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    @Autowired
+    public IncidentContextBuilder(MetricRepository metricRepository,
+                                  EndpointRepository endpointRepository,
+                                  AlertsRepository alertsRepository,
+                                  ServiceDependencyRepository serviceDependencyRepository) {
+        this.metricRepository = metricRepository;
+        this.endpointRepository = endpointRepository;
+        this.alertsRepository = alertsRepository;
+        this.serviceDependencyRepository = serviceDependencyRepository;
+    }
+
+    // Retained for unit tests that do not exercise service-dependency context.
     public IncidentContextBuilder(MetricRepository metricRepository,
                                   EndpointRepository endpointRepository,
                                   AlertsRepository alertsRepository) {
