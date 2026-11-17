@@ -25,4 +25,4 @@ jobs:
           cache: gradle
       - name: Run backend tests
         working-directory: backend
-        run: ./gradlew test --no-daemon
+        run: bash ./gradlew test --no-daemon
