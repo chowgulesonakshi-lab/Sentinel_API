@@ -57,3 +57,10 @@ management:
 logging:
   level:
     org.hibernate.SQL: ${HIBERNATE_SQL_LOG_LEVEL:WARN}
+
+# Incident intelligence provider (Ollama by default; override through environment variables).
+sentinel:
+  ai:
+    enabled: ${SENTINEL_AI_ENABLED:true}
+    base-url: ${SENTINEL_AI_BASE_URL:http://localhost:11434}
+    model: ${SENTINEL_AI_MODEL:qwen2.5:7b}

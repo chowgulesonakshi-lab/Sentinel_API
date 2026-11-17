@@ -78,7 +78,13 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 
 * Track response time, HTTP status codes, timestamps, and success state
 * Store historical metrics for every monitoring execution
-* Retrieve endpoint-specific metric history
+* Retrieve endpoint-specific metric history with pagination and date-range filters
+* Calculate p50, p90, p95, and p99 latency percentiles
+* Calculate monitoring-check throughput, error rate, uptime, and availability over a selected period
+* Compare the selected period with the immediately preceding period of equal duration
+* Configure endpoint SLO targets of 99%, 99.9%, or 99.95%
+* Generate rolling 7-day, 30-day, and 90-day SLO compliance reports
+* Calculate allowed failed checks, error-budget consumption and remaining budget, and error-budget burn rate
 * Identify slow API responses above the 1000 ms threshold
 * Calculate average response time across successful checks
 * Calculate current healthy and failed endpoint counts based on the latest health state
@@ -345,6 +351,10 @@ The backend provides RESTful endpoints. Swagger documentation is available inter
 * `GET /metrics` - List all historical metric execution records
 * `GET /metrics/{id}` - Get a metric record by ID
 * `GET /metrics/endpoint/{endpointId}` - Get metric history for an endpoint
+* `GET /metrics/endpoint/{endpointId}/history?from={ISO_DATE_TIME}&to={ISO_DATE_TIME}&page=0&size=50` - Get paginated endpoint history with optional date filters (defaults to the last 24 hours)
+* `GET /metrics/analytics?endpointId={id}&from={ISO_DATE_TIME}&to={ISO_DATE_TIME}` - Get latency percentiles, throughput, error rate, uptime, availability, and equal-period historical comparisons (endpointId is optional; defaults to the last 24 hours)
+* `PUT /slos/endpoints/{endpointId}/target` - Configure an endpoint SLO target with JSON body `{"targetPercentage":99.9}` (supported values: 99, 99.9, 99.95)
+* `GET /slos/endpoints/{endpointId}/report` - Return rolling 7-day, 30-day, and 90-day availability, compliance, error-budget, and burn-rate reports
 * `GET /metrics/endpoint/{endpointId}/latest` - Get the latest metric for an endpoint
 * `GET /metrics/slow` - List metric records exceeding the specified response-time threshold
 * `GET /metrics/status/{statusCode}` - Get metrics matching an HTTP status code
@@ -591,3 +601,39 @@ Passionate about Full-Stack Engineering, Distributed Systems, and AI.
 ## ⭐ Support
 
 If you found Sentinel API useful, please consider giving this repository a ⭐ on GitHub!
+
+## Milestone 7 — Incident Management
+
+- Create incidents from an endpoint and optionally associate the originating alert.
+- Lifecycle workflow: `OPEN → ACKNOWLEDGED → INVESTIGATING → RESOLVED`, with invalid transitions rejected.
+- Severity (CRITICAL/HIGH/MEDIUM/LOW), priority (P1–P4), assignee, and endpoint association.
+- Append-only incident event timeline for creation, updates, and operator notes.
+- Incident summary includes open/resolved counts and mean time to resolution (MTTR).
+- All incident reads and writes are scoped to the authenticated project owner.
+
+### Incident APIs
+
+- `POST /incidents` — create (endpointId, title, description, optional alertId, severity, priority, assignedTo).
+- `GET /incidents?endpointId={id}` — list incidents; endpointId is optional.
+- `GET /incidents/{id}` — incident details and audit timeline.
+- `PATCH /incidents/{id}` — update status, severity, priority, assignment, and audit details.
+- `POST /incidents/{id}/notes` — append an operator note.
+- `GET /incidents/summary` — counts and average MTTR.
+
+## Milestone 8 — AI Incident Intelligence
+
+- Correlates a selected incident with the endpoint's last 30 days of recorded telemetry.
+- Surfaces failed-check counts, HTTP 5xx evidence, latency baseline, and recurring same-endpoint incident titles.
+- Produces investigation steps and corrective-action suggestions while explicitly treating root causes as hypotheses.
+- Generates a structured postmortem with timeline and evidence; provides a natural-language query endpoint over the authenticated user's incident records.
+- Uses a configurable Ollama-compatible provider. If the provider is disabled or unavailable, deterministic evidence-based analysis and a postmortem template remain available.
+
+### AI APIs
+
+- `POST /ai/incidents/{id}/analysis` — evidence-based analysis and recurring patterns.
+- `POST /ai/incidents/{id}/postmortem` — AI postmortem or evidence-backed template.
+- `POST /ai/incidents/query` with `{"question":"Which incidents are still open?"}` — natural-language incident query.
+
+Configure with `SENTINEL_AI_ENABLED`, `SENTINEL_AI_BASE_URL`, and `SENTINEL_AI_MODEL` (defaults: enabled, `http://localhost:11434`, `qwen2.5:7b`). AI output is advisory and must be verified against logs and telemetry.
+
+Database migrations: V9 creates incident and audit-event tables; V10 adds supporting indexes.

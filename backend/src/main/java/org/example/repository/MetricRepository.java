@@ -2,6 +2,8 @@ package org.example.repository;
 
 import org.example.entity.Endpoint;
 import org.example.entity.Metrics;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,7 +26,17 @@ public interface MetricRepository extends JpaRepository<Metrics, Long> {
     long countByEndpointId(Long endpointId);
     List<Metrics> findByStatusCodeGreaterThanEqual(int statusCode);
     long countBySuccessFalse();
-    Optional<Metrics>findTopByEndpoint_IdOrderByTimeStampDesc(Long endpointId);
+    Optional<Metrics> findTopByEndpoint_IdOrderByTimeStampDesc(Long endpointId);
+
+    List<Metrics> findByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndTimeStampBetweenOrderByTimeStampDesc(
+            String email, LocalDateTime from, LocalDateTime to);
+
+    List<Metrics> findByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
+            String email, Long endpointId, LocalDateTime from, LocalDateTime to);
+
+    Page<Metrics> findPageByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
+            String email, Long endpointId, LocalDateTime from, LocalDateTime to, Pageable pageable);
+
     @Modifying
     @Transactional
     @Query("DELETE FROM Metrics m WHERE m.endpoint = :endpoint")
