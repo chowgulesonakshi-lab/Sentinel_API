@@ -78,7 +78,10 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 
 * Track response time, HTTP status codes, timestamps, and success state
 * Store historical metrics for every monitoring execution
-* Retrieve endpoint-specific metric history
+* Retrieve endpoint-specific metric history with pagination and date-range filters
+* Calculate p50, p90, p95, and p99 latency percentiles
+* Calculate monitoring-check throughput, error rate, uptime, and availability over a selected period
+* Compare the selected period with the immediately preceding period of equal duration
 * Identify slow API responses above the 1000 ms threshold
 * Calculate average response time across successful checks
 * Calculate current healthy and failed endpoint counts based on the latest health state
@@ -345,6 +348,8 @@ The backend provides RESTful endpoints. Swagger documentation is available inter
 * `GET /metrics` - List all historical metric execution records
 * `GET /metrics/{id}` - Get a metric record by ID
 * `GET /metrics/endpoint/{endpointId}` - Get metric history for an endpoint
+* `GET /metrics/endpoint/{endpointId}/history?from={ISO_DATE_TIME}&to={ISO_DATE_TIME}&page=0&size=50` - Get paginated endpoint history with optional date filters (defaults to the last 24 hours)
+* `GET /metrics/analytics?endpointId={id}&from={ISO_DATE_TIME}&to={ISO_DATE_TIME}` - Get latency percentiles, throughput, error rate, uptime, availability, and equal-period historical comparisons (endpointId is optional; defaults to the last 24 hours)
 * `GET /metrics/endpoint/{endpointId}/latest` - Get the latest metric for an endpoint
 * `GET /metrics/slow` - List metric records exceeding the specified response-time threshold
 * `GET /metrics/status/{statusCode}` - Get metrics matching an HTTP status code
