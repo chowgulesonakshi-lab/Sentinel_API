@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS slo_configurations (
+    id BIGSERIAL PRIMARY KEY,
+    endpoint_id BIGINT NOT NULL UNIQUE REFERENCES endpoints(id) ON DELETE CASCADE,
+    target_percentage DOUBLE PRECISION NOT NULL DEFAULT 99.9,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_slo_target_percentage CHECK (target_percentage IN (99.0, 99.9, 99.95))
+);
+
+CREATE INDEX IF NOT EXISTS idx_metrics_endpoint_timestamp
+    ON metrics ("endpointId", "time_stamp");
