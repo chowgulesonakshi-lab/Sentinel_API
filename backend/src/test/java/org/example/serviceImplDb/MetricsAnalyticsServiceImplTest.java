@@ -55,16 +55,16 @@ class MetricsAnalyticsServiceImplTest {
         assertEquals(5, result.getTotalChecks());
         assertEquals(4, result.getSuccessfulChecks());
         assertEquals(1, result.getFailedChecks());
-        assertEquals(250.0, result.getP50LatencyMs());
-        assertEquals(370.0, result.getP90LatencyMs());
-        assertEquals(385.0, result.getP95LatencyMs());
-        assertEquals(397.0, result.getP99LatencyMs());
-        assertEquals(20.0, result.getErrorRatePercent());
-        assertEquals(80.0, result.getAvailabilityPercent());
-        assertEquals(80.0, result.getUptimePercent());
-        assertEquals(5.0, result.getThroughputPerMinute());
-        assertEquals(400.0, result.getThroughputChangePercent());
-        assertEquals(-20.0, result.getAvailabilityChangePercentagePoints());
+        assertEquals(250.0, result.getP50LatencyMs(), 0.001);
+        assertEquals(370.0, result.getP90LatencyMs(), 0.001);
+        assertEquals(385.0, result.getP95LatencyMs(), 0.001);
+        assertEquals(397.0, result.getP99LatencyMs(), 0.001);
+        assertEquals(20.0, result.getErrorRatePercent(), 0.001);
+        assertEquals(80.0, result.getAvailabilityPercent(), 0.001);
+        assertEquals(80.0, result.getUptimePercent(), 0.001);
+        assertEquals(5.0, result.getThroughputPerMinute(), 0.001);
+        assertEquals(400.0, result.getThroughputChangePercent(), 0.001);
+        assertEquals(-20.0, result.getAvailabilityChangePercentagePoints(), 0.001);
     }
 
     @Test
