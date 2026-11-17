@@ -34,7 +34,7 @@ public interface MetricRepository extends JpaRepository<Metrics, Long> {
     List<Metrics> findByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
             String email, Long endpointId, LocalDateTime from, LocalDateTime to);
 
-    Page<Metrics> findByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
+    Page<Metrics> findPageByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
             String email, Long endpointId, LocalDateTime from, LocalDateTime to, Pageable pageable);
 
     @Modifying
