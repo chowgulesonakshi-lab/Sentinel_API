@@ -39,7 +39,7 @@ class SloServiceImplTest {
         endpoint = new Endpoint();
         endpoint.setId(42L);
         endpoint.setUrl("https://api.example.com/health");
-        when(endpointRepository.findByIdAndApiService_Project_Owner_EmailIgnoreCase(
+        lenient().when(endpointRepository.findByIdAndApiService_Project_Owner_EmailIgnoreCase(
                 42L, "sonakshi@example.com")).thenReturn(Optional.of(endpoint));
     }
 
