@@ -5,7 +5,6 @@ import org.example.dto.MetricsAnalyticsDTO;
 import org.example.dto.MetricsResponseDTO;
 import org.example.entity.Metrics;
 import org.example.repository.MetricRepository;
-import org.example.security.ResourceOwnership;
 import org.example.service.MetricsAnalyticsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -62,7 +60,7 @@ public class MetricsAnalyticsServiceImpl implements MetricsAnalyticsService {
                         email, from, to)
                 : metricRepository.findByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
                         email, endpointId, from, to);
-        return metrics.stream().filter(ResourceOwnership::isCurrentUser).toList();
+        return metrics;
     }
 
     private MetricsAnalyticsDTO summarize(List<Metrics> metrics, LocalDateTime from,
@@ -78,7 +76,7 @@ public class MetricsAnalyticsServiceImpl implements MetricsAnalyticsService {
                 .map(Metrics::getResponseTime).filter(value -> value != null && value >= 0)
                 .sorted().toList();
         double average = latencies.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-        double availability = total == 0 ? 100.0 : successful * 100.0 / total;
+        double availability = total == 0 ? 0.0 : successful * 100.0 / total;
         double minutes = Math.max(Duration.between(from, to).toMillis() / 60000.0, 1.0 / 60.0);
 
         dto.setTotalChecks(total);
