@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS idx_metrics_endpoint_timestamp_desc ON metrics(endpoint_id, time_stamp DESC);
+CREATE INDEX IF NOT EXISTS idx_incident_endpoint_status_created ON incidents(endpoint_id, status, created_at DESC);
