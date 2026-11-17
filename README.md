@@ -601,3 +601,39 @@ Passionate about Full-Stack Engineering, Distributed Systems, and AI.
 ## ⭐ Support
 
 If you found Sentinel API useful, please consider giving this repository a ⭐ on GitHub!
+
+## Milestone 7 — Incident Management
+
+- Create incidents from an endpoint and optionally associate the originating alert.
+- Lifecycle workflow: `OPEN → ACKNOWLEDGED → INVESTIGATING → RESOLVED`, with invalid transitions rejected.
+- Severity (CRITICAL/HIGH/MEDIUM/LOW), priority (P1–P4), assignee, and endpoint association.
+- Append-only incident event timeline for creation, updates, and operator notes.
+- Incident summary includes open/resolved counts and mean time to resolution (MTTR).
+- All incident reads and writes are scoped to the authenticated project owner.
+
+### Incident APIs
+
+- `POST /incidents` — create (endpointId, title, description, optional alertId, severity, priority, assignedTo).
+- `GET /incidents?endpointId={id}` — list incidents; endpointId is optional.
+- `GET /incidents/{id}` — incident details and audit timeline.
+- `PATCH /incidents/{id}` — update status, severity, priority, assignment, and audit details.
+- `POST /incidents/{id}/notes` — append an operator note.
+- `GET /incidents/summary` — counts and average MTTR.
+
+## Milestone 8 — AI Incident Intelligence
+
+- Correlates a selected incident with the endpoint's last 30 days of recorded telemetry.
+- Surfaces failed-check counts, HTTP 5xx evidence, latency baseline, and recurring same-endpoint incident titles.
+- Produces investigation steps and corrective-action suggestions while explicitly treating root causes as hypotheses.
+- Generates a structured postmortem with timeline and evidence; provides a natural-language query endpoint over the authenticated user's incident records.
+- Uses a configurable Ollama-compatible provider. If the provider is disabled or unavailable, deterministic evidence-based analysis and a postmortem template remain available.
+
+### AI APIs
+
+- `POST /ai/incidents/{id}/analysis` — evidence-based analysis and recurring patterns.
+- `POST /ai/incidents/{id}/postmortem` — AI postmortem or evidence-backed template.
+- `POST /ai/incidents/query` with `{"question":"Which incidents are still open?"}` — natural-language incident query.
+
+Configure with `SENTINEL_AI_ENABLED`, `SENTINEL_AI_BASE_URL`, and `SENTINEL_AI_MODEL` (defaults: enabled, `http://localhost:11434`, `qwen2.5:7b`). AI output is advisory and must be verified against logs and telemetry.
+
+Database migrations: V9 creates incident and audit-event tables; V10 adds supporting indexes.
