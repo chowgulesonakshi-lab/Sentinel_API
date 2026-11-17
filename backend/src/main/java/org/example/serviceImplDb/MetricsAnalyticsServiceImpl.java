@@ -48,7 +48,7 @@ public class MetricsAnalyticsServiceImpl implements MetricsAnalyticsService {
         validateRange(from, to);
         String email = currentUserEmail();
         return metricRepository
-                .findByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
+                .findPageByEndpoint_ApiService_Project_Owner_EmailIgnoreCaseAndEndpoint_IdAndTimeStampBetweenOrderByTimeStampDesc(
                         email, endpointId, from, to, pageable)
                 .map(this::toDto);
     }
