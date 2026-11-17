@@ -11,7 +11,7 @@ class IncidentServiceTest {
   service=new IncidentService(incidents,events,endpoints,alerts);
   SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("owner@example.com","token",List.of()));
   endpoint=new Endpoint();endpoint.setId(8L);endpoint.setUrl("https://service.example/health");endpoint.setMethod(Endpoint.HttpMethod.GET);
-  when(endpoints.findByIdAndApiService_Project_Owner_EmailIgnoreCase(8L,"owner@example.com")).thenReturn(Optional.of(endpoint));
+  lenient().when(endpoints.findByIdAndApiService_Project_Owner_EmailIgnoreCase(8L,"owner@example.com")).thenReturn(Optional.of(endpoint));
   when(incidents.save(any(Incident.class))).thenAnswer(call->{Incident i=call.getArgument(0);if(i.getId()==null)i.setId(21L);if(i.getCreatedAt()==null)i.setCreatedAt(java.time.LocalDateTime.now());if(i.getUpdatedAt()==null)i.setUpdatedAt(java.time.LocalDateTime.now());return i;});
   when(events.save(any(IncidentEvent.class))).thenAnswer(call->call.getArgument(0));
   when(events.findByIncident_IdOrderByCreatedAtAsc(21L)).thenReturn(List.of());
