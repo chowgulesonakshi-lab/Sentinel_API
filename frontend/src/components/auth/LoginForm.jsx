@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 
 function LoginForm({setIsLogin}){
@@ -9,7 +9,7 @@ function LoginForm({setIsLogin}){
 
             const handleLogin = async() => {
                 try{
-                    const response = await axios.post("http://localhost:8080/login",
+                    const response = await api.post("/login",
                         {
                             email, password
                         });
