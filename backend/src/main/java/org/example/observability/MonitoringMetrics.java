@@ -39,7 +39,7 @@ public class MonitoringMetrics {
                     .tags("method", method, "outcome", outcome)
                     .publishPercentileHistogram()
                     .register(meterRegistry)
-                    .record(metrics.getResponseTime(), TimeUnit.MILLISECONDS);
+                    .record(Math.round(metrics.getResponseTime() * 1_000_000d), TimeUnit.NANOSECONDS);
         }
     }
 }
