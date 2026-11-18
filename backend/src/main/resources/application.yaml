@@ -68,6 +68,10 @@ logging:
 
 # Incident intelligence provider (Ollama by default; override through environment variables).
 sentinel:
+  notifications:
+    webhook:
+      enabled: ${ALERT_WEBHOOK_ENABLED:false}
+      url: ${ALERT_WEBHOOK_URL:}
   ai:
     enabled: ${SENTINEL_AI_ENABLED:true}
     base-url: ${SENTINEL_AI_BASE_URL:http://localhost:11434}
