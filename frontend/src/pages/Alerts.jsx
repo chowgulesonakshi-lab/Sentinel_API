@@ -4,7 +4,7 @@ import { getAllAlerts, resolveAlert } from "../services/alertsService";
 import { getAlertRules, deleteAlertRule, toggleAlertRule } from "../services/alertRuleService";
 import { subscribeToMonitoringEvents } from "../services/realtimeService";
 import AlertRuleModal from "../components/AlertComponents/AlertRuleModal";
-import axios from "axios";
+import api from "../api/axios";
 import { Sparkles, CheckCircle2, AlertTriangle, Info, Sliders, Plus, Edit2, Trash2, Check, ShieldAlert } from "lucide-react";
 
 function Alerts() {
@@ -84,7 +84,7 @@ function Alerts() {
         }
         setAnalyzingAlert(alertId);
         try {
-            const response = await axios.post(`http://localhost:8080/ai/analyze/${alertId}`);
+            const response = await api.post(`/ai/analyze/${alertId}`);
             setAiAnalysis(prev => ({
                 ...prev,
                 [alertId]: { success: true, ...response.data }
