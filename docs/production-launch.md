@@ -7,7 +7,7 @@ The repository runs two GitHub Actions workflows on branch pushes and pull reque
 - **Backend CI**: Java 21 Gradle tests, then a Docker image build.
 - **Frontend CI**: install frontend dependencies and run the Vite production build.
 
-Protect `main` with required status checks for Backend CI and Frontend CI. Merge only after both checks pass and the pull request has been reviewed.
+Protect `main` with required status checks for Backend CI and Frontend CI. Merge only after both checks pass and the pull request has been reviewed. Configure the GitHub `production` environment with required reviewers if you want an approval gate before either deployment job can run.
 
 ## 2. Optional production deployment workflow
 
