@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/alerts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AlertsController {
 
     private final AlertsService alertsService;
