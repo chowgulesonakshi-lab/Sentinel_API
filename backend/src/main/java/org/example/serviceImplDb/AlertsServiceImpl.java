@@ -1,19 +1,55 @@
 package org.example.serviceImplDb;
 
-import lombok.RequiredArgsConstructor;
 import org.example.dto.AlertsResponseDTO;
+import org.example.dto.AlertWebhookPayload;
+import org.example.notification.AlertWebhookNotifier;
 import org.example.entity.Alerts;
 import org.example.repository.AlertsRepository;
 import org.example.service.AlertsService;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
-@RequiredArgsConstructor
 public class AlertsServiceImpl implements AlertsService {
     private final AlertsRepository alertsRepository;
+    private final AlertWebhookNotifier alertWebhookNotifier;
+
+    @Autowired
+    public AlertsServiceImpl(AlertsRepository alertsRepository, AlertWebhookNotifier alertWebhookNotifier) {
+        this.alertsRepository = alertsRepository;
+        this.alertWebhookNotifier = alertWebhookNotifier;
+    }
+
+    public AlertsServiceImpl(AlertsRepository alertsRepository) {
+        this(alertsRepository, null);
+    }
+
+    private void notifyWebhook(Alerts alert, String event) {
+        if (alertWebhookNotifier == null) {
+            return;
+        }
+        AlertWebhookPayload payload = new AlertWebhookPayload(
+                alert.getId(),
+                event,
+                alert.getType() == null ? "UNKNOWN" : alert.getType().name(),
+                alert.getSeverity() == null ? "UNKNOWN" : alert.getSeverity().name(),
+                alert.getMessage(),
+                alert.isResolved(),
+                alert.getResolvedAt() != null ? alert.getResolvedAt()
+                        : (alert.getCreatedAt() != null ? alert.getCreatedAt() : LocalDateTime.now())
+        );
+        try {
+            alertWebhookNotifier.send(payload);
+        } catch (RuntimeException exception) {
+            // Executor saturation must not prevent the alert from being saved.
+            org.slf4j.LoggerFactory.getLogger(AlertsServiceImpl.class)
+                    .warn("Unable to queue alert webhook {}: {}", alert.getId(), exception.getMessage());
+        }
+    }
 
     private AlertsResponseDTO mapToDTO(Alerts alert) {
         AlertsResponseDTO dto = new AlertsResponseDTO();
@@ -48,7 +84,9 @@ public class AlertsServiceImpl implements AlertsService {
 
     @Override
     public Alerts saveAlert(Alerts alert) {
-        return alertsRepository.save(alert);
+        Alerts saved = alertsRepository.save(alert);
+        notifyWebhook(saved, saved.isResolved() ? "ALERT_RESOLVED" : "ALERT_CREATED");
+        return saved;
     }
 
     @Override
@@ -137,6 +175,7 @@ public class AlertsServiceImpl implements AlertsService {
         alert.setResolved(true);
         alert.setResolvedAt(java.time.LocalDateTime.now());
         Alerts saved = alertsRepository.save(alert);
+        notifyWebhook(saved, "ALERT_RESOLVED");
         return mapToDTO(saved);
     }
 }
