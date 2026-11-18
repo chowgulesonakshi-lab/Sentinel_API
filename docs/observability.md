@@ -47,3 +47,17 @@ Custom metrics:
 The response-time timer publishes a histogram suitable for latency percentile calculations. Endpoint IDs and full URLs are intentionally excluded from metric labels to avoid high-cardinality metrics.
 
 Standard Spring Boot HTTP server, JVM, and process metrics are also available through the Micrometer registry.
+
+## Alert webhook notifications
+
+Alert creation and resolution can be delivered to a generic HTTP(S) webhook. Delivery is asynchronous, uses a bounded executor and short HTTP timeouts, and does not block monitoring or alert persistence when the remote receiver is unavailable.
+
+Configuration:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ALERT_WEBHOOK_ENABLED` | `false` | Enable webhook delivery |
+| `ALERT_WEBHOOK_URL` | empty | Public HTTP(S) receiver URL |
+
+The receiver gets a JSON payload containing the alert ID, lifecycle event (`ALERT_CREATED` or `ALERT_RESOLVED`), alert type, severity, message, resolved state, and event timestamp. Endpoint URLs and user information are not included. The configured URL is validated to reject localhost, private, and reserved network targets. Keep any secret webhook URL in the deployment platform's secret/environment settings, never in source control.
+
