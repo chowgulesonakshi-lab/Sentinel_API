@@ -5,6 +5,8 @@ export function subscribeToMonitoringEvents(onUpdate) {
     let controller = null;
     let retryTimer = null;
     let retryDelay = 2000;
+    let updateTimer = null;
+    let latestUpdate = null;
 
     const connect = async () => {
         const token = localStorage.getItem("token");
@@ -60,7 +62,14 @@ export function subscribeToMonitoringEvents(onUpdate) {
 
                     if (eventName === "monitoring-update" && dataLines.length > 0) {
                         try {
-                            onUpdate(JSON.parse(dataLines.join("\n")));
+                            latestUpdate = JSON.parse(dataLines.join("\n"));
+                            if (updateTimer !== null) window.clearTimeout(updateTimer);
+                            updateTimer = window.setTimeout(() => {
+                                updateTimer = null;
+                                const update = latestUpdate;
+                                latestUpdate = null;
+                                onUpdate(update);
+                            }, 200);
                         } catch (error) {
                             console.error("Unable to process monitoring event:", error);
                         }
@@ -85,6 +94,7 @@ export function subscribeToMonitoringEvents(onUpdate) {
     return () => {
         active = false;
         if (retryTimer !== null) window.clearTimeout(retryTimer);
+        if (updateTimer !== null) window.clearTimeout(updateTimer);
         controller?.abort();
     };
 }
