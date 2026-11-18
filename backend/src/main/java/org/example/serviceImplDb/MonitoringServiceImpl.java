@@ -23,6 +23,8 @@ import org.example.service.rule.AlertRuleEngine;
 import org.example.service.anomaly.AnomalyDetectionResult;
 import org.example.service.anomaly.AnomalyDetectionService;
 import org.example.realtime.RealtimeEventService;
+import org.example.observability.MonitoringMetrics;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -42,6 +44,8 @@ public class MonitoringServiceImpl implements MonitoringService {
     private final AlertRuleEngine alertRuleEngine;
     private final AnomalyDetectionService anomalyDetectionService;
     private final RealtimeEventService realtimeEventService;
+    private final MonitoringMetrics monitoringMetrics;
+    private final RestTemplateBuilder restTemplateBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -50,13 +54,25 @@ public class MonitoringServiceImpl implements MonitoringService {
                                  AlertsService alertsService,
                                  AlertRuleEngine alertRuleEngine,
                                  AnomalyDetectionService anomalyDetectionService,
-                                 RealtimeEventService realtimeEventService) {
+                                 RealtimeEventService realtimeEventService,
+                                 MonitoringMetrics monitoringMetrics,
+                                 RestTemplateBuilder restTemplateBuilder) {
         this.endpointRepository = endpointRepository;
         this.metricsService = metricsService;
         this.alertsService = alertsService;
         this.alertRuleEngine = alertRuleEngine;
         this.anomalyDetectionService = anomalyDetectionService;
         this.realtimeEventService = realtimeEventService;
+        this.monitoringMetrics = monitoringMetrics;
+        this.restTemplateBuilder = restTemplateBuilder;
+    }
+
+    public MonitoringServiceImpl(EndpointRepository endpointRepository,
+                                 MetricsService metricsService,
+                                 AlertsService alertsService,
+                                 RealtimeEventService realtimeEventService) {
+        this(endpointRepository, metricsService, alertsService, null, null,
+                realtimeEventService, null, null);
     }
 
     public MonitoringServiceImpl(EndpointRepository endpointRepository,
@@ -146,7 +162,9 @@ public class MonitoringServiceImpl implements MonitoringService {
         requestFactory.setConnectTimeout(timeout);
         requestFactory.setReadTimeout(timeout);
 
-        RestTemplate client = new RestTemplate(requestFactory);
+        RestTemplate client = restTemplateBuilder == null
+                ? new RestTemplate(requestFactory)
+                : restTemplateBuilder.requestFactory(() -> requestFactory).build();
         // Do not throw exceptions on 4xx/5xx so we can check expectedStatusCodes accurately
         client.setErrorHandler(new DefaultResponseErrorHandler() {
             @Override
@@ -208,6 +226,9 @@ public class MonitoringServiceImpl implements MonitoringService {
             metrics.setResponseTime((double) (System.currentTimeMillis() - startTime));
             metrics.setTimeStamp(LocalDateTime.now());
             metricsService.saveMetric(metrics);
+            if (monitoringMetrics != null) {
+                monitoringMetrics.recordCheck(endpoint, metrics);
+            }
 
             handleAlertsAndThresholds(endpoint, metrics);
             if (realtimeEventService != null) {
