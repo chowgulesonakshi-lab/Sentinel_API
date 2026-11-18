@@ -23,6 +23,9 @@ spring:
       idle-timeout: ${DB_IDLE_TIMEOUT_MS:600000}
       max-lifetime: ${DB_MAX_LIFETIME_MS:1800000}
   flyway:
+    url: ${FLYWAY_DB_URL:${DB_URL:jdbc:postgresql://localhost:5432/sentinel_api}}
+    user: ${FLYWAY_DB_USERNAME:${DB_USERNAME:postgres}}
+    password: ${FLYWAY_DB_PASSWORD:${DB_PASSWORD:}}
     enabled: true
     baseline-on-migrate: true
     baseline-version: 1
