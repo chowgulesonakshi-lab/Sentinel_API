@@ -218,6 +218,7 @@ public class MonitoringServiceImpl implements MonitoringService {
                             endpoint.getId(), exception.getMessage());
                 }
             }
+        }
 
         return metrics;
     }
