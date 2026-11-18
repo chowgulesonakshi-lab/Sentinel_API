@@ -9,7 +9,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.time.Duration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 @Service
 @Slf4j
@@ -24,9 +27,17 @@ public class AlertWebhookNotifier {
             @Value("${sentinel.notifications.webhook.enabled:false}") boolean enabled,
             @Value("${sentinel.notifications.webhook.url:}") String webhookUrl
     ) {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+                super.prepareConnection(connection, httpMethod);
+                connection.setInstanceFollowRedirects(false);
+            }
+        };
+        requestFactory.setConnectTimeout(Duration.ofSeconds(2));
+        requestFactory.setReadTimeout(Duration.ofSeconds(3));
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofSeconds(2))
-                .setReadTimeout(Duration.ofSeconds(3))
+                .requestFactory(() -> requestFactory)
                 .build();
         this.enabled = enabled;
         this.webhookUrl = webhookUrl;
