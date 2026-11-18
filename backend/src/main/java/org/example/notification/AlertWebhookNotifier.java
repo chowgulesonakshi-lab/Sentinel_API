@@ -59,8 +59,9 @@ public class AlertWebhookNotifier {
             log.debug("Delivered alert webhook event {} for alert {}", payload.event(), payload.alertId());
         } catch (Exception exception) {
             // A notification outage must never interrupt endpoint monitoring or alert persistence.
-            log.warn("Alert webhook delivery failed for alert {}: {}",
-                    payload.alertId(), exception.getMessage());
+            // Do not log the configured URL: webhook URLs often contain bearer secrets.
+            log.warn("Alert webhook delivery failed for alert {} ({})",
+                    payload.alertId(), exception.getClass().getSimpleName());
         }
     }
 }
