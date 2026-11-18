@@ -19,11 +19,11 @@ Keep the pooler hostname and the username exactly as provided by Neon. Do not pa
 
 1. Create a Railway project and add a service from this GitHub repository.
 2. Select the branch containing the deployment changes.
-3. Set the service **Root Directory** to `backend`.
-4. Let Railway build the `Dockerfile` in that directory.
+3. Keep the service **Root Directory** at its default repository root. The production GitHub Actions workflow uploads only `./backend` with `--path-as-root`, so the Dockerfile becomes the root of the uploaded deployment archive.
+4. Let Railway detect and build the uploaded `Dockerfile`.
 5. Set the health check path to `/actuator/health/readiness` and allow up to 300 seconds for the first deployment.
 
-The container builds the Spring Boot executable JAR with Java 21, runs on a Java 21 JRE image, and uses a non-root Linux user. Railway's injected `PORT` is used by Spring Boot.
+The container builds the Spring Boot executable JAR with Java 21, runs on a Java 21 JRE image, and uses a non-root Linux user. Railway's injected `PORT` is used by Spring Boot. If you choose Railway's native GitHub autodeploy instead of the repository's CLI workflow, set the service Root Directory to `backend` and do not use the CLI `--path-as-root` upload command.
 
 ## 3. Configure Railway variables
 
