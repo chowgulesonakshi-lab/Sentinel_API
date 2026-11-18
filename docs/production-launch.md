@@ -24,12 +24,13 @@ Add these GitHub repository variables:
 
 | Variable | Purpose |
 | --- | --- |
+| `RAILWAY_PROJECT_ID` | Railway project ID |
 | `RAILWAY_SERVICE_ID` | Railway backend service ID |
 | `RAILWAY_ENVIRONMENT` | Railway environment name; defaults to `production` |
 | `VERCEL_ORG_ID` | Vercel team/user organization ID |
 | `VERCEL_PROJECT_ID` | Vercel frontend project ID |
 
-The Railway deployment command uploads only the backend directory as the deployment root. The Vercel job pulls the Production project environment, builds the frontend, and deploys the prebuilt output.
+The Railway deployment command targets the configured project, service, and environment explicitly, and uploads only the backend directory as the deployment root. The Vercel job pulls the Production project environment, builds the frontend, and deploys the prebuilt output.
 
 Set `VITE_API_BASE_URL` in Vercel's project environment settings to the Railway public HTTPS origin. Set `CORS_ALLOWED_ORIGINS` in Railway to the exact Vercel production origin. These values must be configured in their respective platforms; do not add them as hard-coded source values.
 
