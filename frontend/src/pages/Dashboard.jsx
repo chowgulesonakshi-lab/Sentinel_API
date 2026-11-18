@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import MainLayout from "../layouts/MainLayout";
 import StatCard from "../components/DashComponents/StatCard";
-import HealthCard from "../components/DashComponents/HealthCard";
 import AlertsCard from "../components/DashComponents/AlertsCard";
 import ChartCard from "../components/DashComponents/ChartCard";
 import SlowApiTable from "../components/DashComponents/SlowApiTable";
@@ -12,26 +11,30 @@ import {
     getDashboard,
     getRecentMetrics,
 } from "../services/dashboardService";
+import { subscribeToMonitoringEvents } from "../services/realtimeService";
 
 function Dashboard() {
     const [dashboard, setDashboard] = useState(null);
     const [metrics, setMetrics] = useState([]);
-    useEffect(() => {
-        loadDashboard();
-        const interval = setInterval(loadDashboard, 30000);
-        return () => clearInterval(interval);
-    }, []);
 
-    const loadDashboard = async () => {
+    const loadDashboard = useCallback(async () => {
         try {
-            const dashboardData = await getDashboard();
-            const metricsData = await getRecentMetrics();
+            const [dashboardData, metricsData] = await Promise.all([
+                getDashboard(),
+                getRecentMetrics(),
+            ]);
             setDashboard(dashboardData);
             setMetrics(metricsData);
         } catch (error) {
             console.error("Error loading dashboard:", error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        loadDashboard();
+        const unsubscribe = subscribeToMonitoringEvents(() => loadDashboard());
+        return unsubscribe;
+    }, [loadDashboard]);
 
     if (!dashboard) {
         return (
