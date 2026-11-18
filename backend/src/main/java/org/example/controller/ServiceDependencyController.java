@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/service-dependencies")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class ServiceDependencyController {
     private final ServiceDependencyService dependencyService;
 
