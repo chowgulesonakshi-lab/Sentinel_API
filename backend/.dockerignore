@@ -1,0 +1,9 @@
+.gradle
+build
+out
+.idea
+*.iml
+.git
+.env
+.env.local
+.env.production
