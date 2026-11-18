@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/alert-rules")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class AlertRuleController {
 
     private final AlertRuleService alertRuleService;
