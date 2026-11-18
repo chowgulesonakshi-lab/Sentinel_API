@@ -256,7 +256,7 @@ The default Ollama server runs on port `11434`.
 The backend project is in `backend/`. Configure the database and JWT secret using environment variables or your IDE run configuration. Do not commit local `.env` files or credential values.
 
 Important production settings:
-- `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` configure PostgreSQL.
+- `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` configure the pooled application datasource. `FLYWAY_DB_URL`, `FLYWAY_DB_USERNAME`, and `FLYWAY_DB_PASSWORD` optionally configure a direct Neon connection for schema migrations.
 - `JWT_SECRET` must be set to a long random value in production.
 - `CORS_ALLOWED_ORIGINS` is an explicit comma-separated origin allow-list.
 - Flyway applies schema migrations; Hibernate uses `ddl-auto: validate`.
@@ -301,6 +301,9 @@ Backend environment variables are read by Spring Boot. No production password or
 | `DB_URL` | Local PostgreSQL JDBC URL | JDBC URL; use Neon's pooled endpoint with `sslmode=require` for the application |
 | `DB_USERNAME` | `postgres` | Database username |
 | `DB_PASSWORD` | Empty | Database password; required outside local development |
+| `FLYWAY_DB_URL` | Falls back to `DB_URL` | Direct, unpooled JDBC URL used for Flyway migrations |
+| `FLYWAY_DB_USERNAME` | Falls back to `DB_USERNAME` | Direct-connection migration username |
+| `FLYWAY_DB_PASSWORD` | Falls back to `DB_PASSWORD` | Direct-connection migration password |
 | `JWT_SECRET` | Empty | JWT signing secret; must be configured in production |
 | `CORS_ALLOWED_ORIGINS` | Local Vite origins | Comma-separated exact frontend origins |
 | `DB_POOL_MAX_SIZE` | `10` | Hikari maximum pool size; use a smaller value with Neon pooling |
