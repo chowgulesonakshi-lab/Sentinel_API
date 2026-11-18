@@ -1,9 +1,9 @@
 # 🚀 Sentinel API Monitoring Dashboard
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.x-38bdf8.svg)](https://tailwindcss.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-19.x-blue.svg)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.x-38bdf8.svg)](https://tailwindcss.com/)
 [![Ollama](https://img.shields.io/badge/AI-Ollama%20%2F%20Qwen2.5-orange.svg)](https://ollama.ai/)
 
 > **Monitor. Analyze. Optimize.**
@@ -45,6 +45,8 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 * **Performance Analytics**: Response-time and health information from recorded checks
 * **Slow API Detection**: Automatically identifies endpoints with response times above 1000 ms
 * **Incident Summary**: Active alert and health-status overview
+* **Live Updates**: Authenticated server-sent events refresh dashboard and metrics without periodic polling
+* **Health Visualization**: Healthy and failed checks are distinguished on the response-time chart
 * **Dark Mode UI**: Modern dark-themed monitoring interface
 
 ![Dashboard](./screenshots/dashboard.png)
@@ -103,6 +105,17 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 
 ![Metrics Management](./screenshots/metrics.png)
 
+### 🔭 Observability and Notifications
+
+* Request correlation IDs returned in the `X-Correlation-ID` response header and included in request-scoped logs
+* Distributed tracing with Micrometer Tracing (Brave) and optional Zipkin span export
+* Prometheus metrics through the protected `/actuator/prometheus` endpoint
+* Endpoint-check counters and response-time histograms with low-cardinality labels
+* Optional asynchronous HTTP webhook notifications for alert creation and resolution
+* User-scoped SSE updates for Dashboard, Metrics, and Alerts views
+
+See [Observability Configuration](./docs/observability.md) for tracing, metrics, and webhook settings.
+
 ### 🚨 Alert Management
 
 * Automated incident detection for failed and slow endpoints
@@ -110,6 +123,7 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 * Active and resolved alert tracking
 * Alert history with resolution status
 * Evidence-based `ANOMALY_DETECTED` alerts with duplicate suppression and automatic resolution
+* Optional asynchronous webhook delivery for alert creation and resolution
 
 ![Alerts Management](./screenshots/alerts.png)
 
@@ -126,9 +140,9 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 
 ### Frontend
 
-* **Framework**: React 18 with Vite
-* **Styling**: Tailwind CSS
-* **HTTP Client**: Axios
+* **Framework**: React 19 with Vite 8
+* **Styling**: Tailwind CSS 4
+* **HTTP Client**: Shared Axios client configured by `VITE_API_BASE_URL`
 * **Routing**: React Router DOM
 * **Charts**: Recharts
 * **Icons**: Lucide React
@@ -139,9 +153,10 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 * **Framework**: Spring Boot 3.x
 * **Security**: Spring Security, JWT (JSON Web Tokens)
 * **Persistence**: Spring Data JPA, Hibernate
-* **REST Integration**: Spring `RestClient`
+* **HTTP Client**: Spring `RestTemplateBuilder` with Micrometer observation instrumentation
+* **Observability**: Spring Boot Actuator, Micrometer Prometheus, Micrometer Tracing, Zipkin reporter
 * **Documentation**: OpenAPI / Swagger (SpringDoc UI)
-* **Scheduling**: Spring Scheduled Tasks
+* **Scheduling**: Spring Scheduled Tasks and async webhook notification executor
 
 ### Database
 
@@ -159,39 +174,47 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 
 ```text
 Sentinel_API/
-├── src/                                  # Spring Boot Backend Codebase
-│   ├── main/
-│   │   ├── java/org/example/
-│   │   │   ├── controller/               # REST API Controllers
-│   │   │   ├── dto/                      # Data Transfer Objects
-│   │   │   ├── entity/                   # JPA Database Entities
-│   │   │   ├── repository/               # Spring Data JPA Repositories
-│   │   │   ├── scheduler/                # Scheduled Endpoint Monitoring Engine
-│   │   │   ├── security/                 # JWT Authentication Filters & Utilities
-│   │   │   ├── service/                  # Service Layer Interfaces
-│   │   │   └── serviceImplDb/            # Database Service Implementations & AI Engine
-│   │   └── resources/
-│   │       └── application.yaml          # Application Configuration
-├── sentinel-api-frontend/                # React Frontend Codebase
+├── backend/
+│   ├── src/main/java/org/example/
+│   │   ├── config/                  # Security, async notifications, application configuration
+│   │   ├── controller/              # REST and SSE controllers
+│   │   ├── dto/                     # API and webhook DTOs
+│   │   ├── entity/                  # JPA entities
+│   │   ├── notification/            # Optional alert webhook delivery
+│   │   ├── observability/           # Custom Micrometer metrics
+│   │   ├── realtime/                # User-scoped SSE event delivery
+│   │   ├── repository/              # Spring Data repositories
+│   │   ├── scheduler/               # Scheduled endpoint monitoring
+│   │   ├── security/                # JWT and URL validation
+│   │   ├── service/                 # Service interfaces and domain services
+│   │   └── serviceImplDb/           # Database-backed implementations
+│   ├── src/main/resources/
+│   │   ├── db/migration/            # Flyway schema migrations
+│   │   └── application.yaml
+│   ├── Dockerfile
+│   └── build.gradle
+├── frontend/
 │   ├── src/
-│   │   ├── components/                   # UI Components & Modules
-│   │   ├── pages/                        # Page Views
-│   │   ├── services/                     # Axios API Integration Services
-│   │   └── App.jsx                       # Main Routing & Application Setup
+│   │   ├── api/                     # Shared Axios client and JWT interceptor
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/                # Frontend API and SSE clients
+│   ├── vercel.json                 # SPA route rewrites
 │   └── package.json
-└── screenshots/                          # Dashboard Visual Screenshots
+├── docs/                           # Observability, deployment, and recovery runbooks
+├── scripts/                        # Authenticated production smoke checks
+└── .github/workflows/              # Backend, frontend, and optional deploy workflows
 ```
-
----
 
 ## 📋 Prerequisites
 
 Before running Sentinel API, ensure you have installed:
 
 * **Java Development Kit (JDK 21 or later)**: `java -version`
-* **Node.js (v18+) & npm**: `node -v` and `npm -v`
-* **PostgreSQL Database** (or use the H2 database configuration)
-* **Ollama** (Required for AI Incident Analysis features)
+* **Node.js (v22.12 or later) & npm**: `node -v` and `npm -v`
+* **PostgreSQL Database** (or Neon for production)
+* **Docker** (for building the backend container)
+* **Ollama** (optional for local AI Incident Analysis)
 
 ---
 
@@ -230,80 +253,86 @@ The default Ollama server runs on port `11434`.
 
 ### 3. Backend Setup
 
-Configure database parameters in `src/main/resources/application.yaml` or pass environment variables:
+The backend project is in `backend/`. Configure the database and JWT secret using environment variables or your IDE run configuration. Do not commit local `.env` files or credential values.
 
-```yaml
-server:
-  port: ${PORT:8080}
+Important production settings:
+- `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` configure the pooled application datasource. `FLYWAY_DB_URL`, `FLYWAY_DB_USERNAME`, and `FLYWAY_DB_PASSWORD` optionally configure a direct Neon connection for schema migrations.
+- `JWT_SECRET` must be set to a long random value in production.
+- `CORS_ALLOWED_ORIGINS` is an explicit comma-separated origin allow-list.
+- Flyway applies schema migrations; Hibernate uses `ddl-auto: validate`.
 
-spring:
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sentinel_api}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-```
-
-Run the Spring Boot application using Gradle:
+Run the backend from the repository root:
 
 #### Windows
 
 ```powershell
+cd backend
 .\gradlew.bat bootRun
 ```
 
 #### Linux / macOS
 
 ```bash
+cd backend
 ./gradlew bootRun
 ```
 
-The backend server starts at:
-
-```text
-http://localhost:8080
-```
-
----
+The backend listens on `http://localhost:8080` by default.
 
 ### 4. Frontend Setup
 
-Navigate to the frontend directory:
+The React/Vite project is in `frontend/`.
 
-```bash
-cd sentinel-api-frontend
-```
-
-Install NPM packages:
-
-```bash
-npm install
-```
-
-Start the Vite development server:
-
-```bash
+```powershell
+cd frontend
+npm ci
 npm run dev
 ```
 
-The frontend application starts at:
-
-```text
-http://localhost:5173
-```
-
----
+The frontend starts at `http://localhost:5173`. Local development defaults to the backend at `http://localhost:8080`; configure `VITE_API_BASE_URL` when using a different backend origin.
 
 ## 🔑 Default Configuration & Environment Variables
 
-| Variable      | Default Value                                   | Description                |
-| :------------ | :---------------------------------------------- | :------------------------- |
-| `PORT`        | `8080`                                          | Backend HTTP Server Port   |
-| `DB_URL`      | `jdbc:postgresql://localhost:5432/sentinel_api` | Database JDBC URL          |
-| `DB_USERNAME` | `postgres`                                      | Database Username          |
-| `DB_PASSWORD` | `postgres`                                      | Database Username Password |
-| `OLLAMA_URL`  | `http://localhost:11434`                        | Ollama AI API Endpoint     |
+Backend environment variables are read by Spring Boot. No production password or JWT signing secret is hard-coded.
 
----
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `PORT` | `8080` | HTTP server port; Railway injects this in production |
+| `DB_URL` | Local PostgreSQL JDBC URL | JDBC URL; use Neon's pooled endpoint with `sslmode=require` for the application |
+| `DB_USERNAME` | `postgres` | Database username |
+| `DB_PASSWORD` | Empty | Database password; required outside local development |
+| `FLYWAY_DB_URL` | Falls back to `DB_URL` | Direct, unpooled JDBC URL used for Flyway migrations |
+| `FLYWAY_DB_USERNAME` | Falls back to `DB_USERNAME` | Direct-connection migration username |
+| `FLYWAY_DB_PASSWORD` | Falls back to `DB_PASSWORD` | Direct-connection migration password |
+| `JWT_SECRET` | Empty | JWT signing secret; must be configured in production |
+| `CORS_ALLOWED_ORIGINS` | Local Vite origins | Comma-separated exact frontend origins |
+| `DB_POOL_MAX_SIZE` | `10` | Hikari maximum pool size; use a smaller value with Neon pooling |
+| `DB_POOL_MIN_IDLE` | `2` | Hikari minimum idle connections |
+| `SENTINEL_AI_ENABLED` | `true` | Enable AI provider integration |
+| `SENTINEL_AI_BASE_URL` | `http://localhost:11434` | Ollama-compatible provider URL |
+| `SENTINEL_AI_MODEL` | `qwen2.5:7b` | AI model name |
+| `TRACING_SAMPLING_PROBABILITY` | `0.1` | Distributed trace sampling probability |
+| `ZIPKIN_ENDPOINT` | Local Zipkin endpoint | Zipkin v2 collector URL |
+| `ALERT_WEBHOOK_ENABLED` | `false` | Enable asynchronous alert webhook delivery |
+| `ALERT_WEBHOOK_URL` | Empty | Public webhook receiver URL; keep secret URLs in platform variables |
+
+Frontend environment:
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `VITE_API_BASE_URL` | `http://localhost:8080` | Backend origin used by Axios and the SSE client |
+
+Vite variables are public in the browser bundle. Never put database credentials, JWT signing secrets, or private webhook URLs in a `VITE_*` variable.
+
+Environment templates: [backend/.env.example](./backend/.env.example) and [frontend/.env.example](./frontend/.env.example).
+
+### Deployment runbooks
+
+- [Neon + Railway backend deployment](./docs/deployment-neon-railway.md)
+- [Vercel frontend deployment](./docs/deployment-vercel.md)
+- [Observability and alert webhooks](./docs/observability.md)
+- [Production backup and recovery](./docs/backup-recovery.md)
+- [CI/CD and production launch checklist](./docs/production-launch.md)
 
 ## 📡 REST API Reference
 
@@ -389,6 +418,12 @@ Metrics responses include anomaly evaluation data when enough valid endpoint his
 
 Anomaly alerts include the observed latency, historical average, standard deviation, calculated threshold, deviation from baseline, sensitivity multiplier, and detection explanation.
 
+### Real-time Events and Actuator
+
+* `GET /events/stream` - Authenticated server-sent event stream for the current user's monitoring updates
+* `GET /actuator/health/readiness` - Readiness probe
+* `GET /actuator/prometheus` - Prometheus metrics endpoint (protected by JWT authentication)
+
 ### Service Dependencies (`/service-dependencies`)
 
 * `POST /service-dependencies` - Create a service dependency
@@ -402,6 +437,9 @@ Anomaly alerts include the observed latency, historical average, standard deviat
 ### 🤖 AI Incident Analysis (`/ai`)
 
 * `POST /ai/analyze/{alertId}` - Analyze alert context using Ollama and retrieve diagnostic insights
+* `POST /ai/incidents/{id}/analysis` - Analyze incident evidence and recurring patterns
+* `POST /ai/incidents/{id}/postmortem` - Generate an evidence-backed incident postmortem
+* `POST /ai/incidents/query` - Query the authenticated user's incident records
 
 ---
 
@@ -506,15 +544,25 @@ When AI incident analysis is requested, the incident context includes dependency
 Backend tests:
 
 ```powershell
-.\gradlew.bat test
+cd backend
+.\gradlew.bat clean test
 ```
 
 Frontend production build:
 
 ```powershell
-cd sentinel-api-frontend
+cd frontend
+npm ci
 npm run build
 ```
+
+Container image build (from the backend directory):
+
+```powershell
+docker build -t sentinel-api-backend:local .
+```
+
+GitHub Actions runs backend tests, a backend Docker image build, and the frontend production build on branch pushes and pull requests.
 
 The backend test suite covers anomaly baselines, invalid and insufficient history, configurable sensitivity, duplicate anomaly alerts, anomaly resolution, dependency validation, circular dependency prevention, dependency graphs, and direct/indirect impact analysis.
 
@@ -532,13 +580,13 @@ The following distinction keeps the project claims aligned with the available ev
 
 The automated checks confirm the covered code paths; they do not by themselves prove production readiness or every runtime integration. In the current development environment, `npm run build` passes and targeted linting for the dependency UI passes. Repository-wide frontend lint still reports pre-existing issues in other modified files. A live PostgreSQL startup, authenticated browser walkthrough, and live Ollama request must be performed separately before describing those integrations as production-verified.
 
-The application uses the existing `spring.jpa.hibernate.ddl-auto: update` configuration to add anomaly and service-dependency columns/tables when the backend starts. Review this behavior before using automatic schema updates in production.
+The application uses Flyway migrations and `spring.jpa.hibernate.ddl-auto: validate`; production startup validates the schema instead of applying automatic Hibernate schema updates.
 
 ---
 
 ## 🚀 Upcoming Features
 
-* 🔔 **Smart Webhook Notifications**: Integration with Slack, Discord, Microsoft Teams, and Email alerts.
+* 🔔 **Provider-Specific Notifications**: Slack, Discord, Microsoft Teams, and email-specific formatting and delivery adapters.
 * 📱 **Mobile App & PWA**: Responsive PWA interface for mobile and tablet monitoring.
 * 📈 **Exportable PDF/CSV Reports**: Scheduled weekly/monthly SLA and performance export reports.
 * 🔒 **Enhanced Security**: Two-Factor Authentication (2FA), OAuth2, and Refresh Tokens.
@@ -547,7 +595,7 @@ The application uses the existing `spring.jpa.hibernate.ddl-auto: update` config
 
 ## 💡 Why Sentinel?
 
-* ✔ **Privacy-Focused AI**: AI incident analysis runs locally using Ollama.
+* ✔ **Configurable AI**: AI incident analysis uses local Ollama by default and supports a separately configured reachable provider.
 * ✔ **Automated Monitoring**: Scheduled background endpoint health checks.
 * ✔ **Comprehensive Visibility**: Projects, services, endpoints, metrics, and alerts in one platform.
 * ✔ **Performance Insights**: Response-time tracking and slow API detection.
