@@ -26,6 +26,8 @@ jobs:
       - name: Run backend tests
         working-directory: backend
         run: bash ./gradlew test --no-daemon
+      - name: Validate workflow YAML files
+        run: ruby -e 'require "yaml"; Dir.glob(".github/workflows/*.yml").each { |file| YAML.load_file(file); puts "Valid YAML: #{file}" }'
       - name: Build backend Docker image
         working-directory: backend
         run: docker build -t sentinel-api-backend:ci .
