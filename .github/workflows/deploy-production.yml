@@ -38,6 +38,8 @@ jobs:
         run: echo "::notice::Railway deployment skipped. Configure RAILWAY_TOKEN and RAILWAY_SERVICE_ID to enable it."
 
   deploy-frontend:
+    needs: deploy-backend
+    if: ${{ always() && github.ref == 'refs/heads/main' && (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') }}
     runs-on: ubuntu-latest
     environment: production
     env:
