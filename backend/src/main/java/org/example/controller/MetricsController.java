@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/metrics")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class MetricsController {
 
     private final MetricsService metricsService;
