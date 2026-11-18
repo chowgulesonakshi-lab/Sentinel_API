@@ -55,6 +55,8 @@ management:
       enabled: true
 
 logging:
+  pattern:
+    level: "%5p [correlationId=%X{correlationId:-}]"
   level:
     org.hibernate.SQL: ${HIBERNATE_SQL_LOG_LEVEL:WARN}
 
