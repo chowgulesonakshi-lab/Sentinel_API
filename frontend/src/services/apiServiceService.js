@@ -1,27 +1,25 @@
-import axios from "axios";
-
-const API = "http://localhost:8080/services";
+import api from "../api/axios";
 
 export const getServices = async () => {
-    const response = await axios.get(API);
+    const response = await api.get("/services");
     return response.data;
 };
 
 export const getServicesByProject = async (projectId) => {
-    const response = await axios.get(`${API}/project/${projectId}`);
+    const response = await api.get(`/services/project/${projectId}`);
     return response.data;
 };
 
 export const createService = async (service) => {
-    const response = await axios.post(API, service);
+    const response = await api.post("/services", service);
     return response.data;
 };
 
 export const updateService = async (id, service) => {
-    const response = await axios.put(`${API}/id/${id}`, service);
+    const response = await api.put(`/services/id/${id}`, service);
     return response.data;
 };
 
 export const deleteService = async (id) => {
-    await axios.delete(`${API}/id/${id}`);
+    await api.delete(`/services/id/${id}`);
 };
