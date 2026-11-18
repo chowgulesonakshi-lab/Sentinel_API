@@ -29,7 +29,11 @@ function CustomTooltip({ active, payload, label }) {
             </p>
 
             <p className="mt-1 font-semibold text-blue-600">
-                {payload[0].value.toFixed(0)} ms
+                {Number(payload[0].value || 0).toFixed(0)} ms response time
+            </p>
+            <p className={`mt-1 text-xs font-medium ${payload[0].payload.success ? "text-emerald-600" : "text-red-600"}`}>
+                {payload[0].payload.success ? "Healthy" : "Failed"}
+                {payload[0].payload.statusCode ? ` · HTTP ${payload[0].payload.statusCode}` : ""}
             </p>
 
         </div>
@@ -49,7 +53,9 @@ function ChartCard({ metrics }) {
                 hour: "2-digit",
                 minute: "2-digit"
             }),
-            responseTime: metric.responseTime
+            responseTime: metric.responseTime,
+            success: metric.success,
+            statusCode: metric.statusCode
         }));
 
     return (
@@ -66,7 +72,7 @@ function ChartCard({ metrics }) {
                 text-lg font-semibold
                 text-slate-900 dark:text-white
             ">
-                Performance Trend
+                Response Time & Check Health
             </h2>
 
             <p className="
@@ -74,7 +80,7 @@ function ChartCard({ metrics }) {
                 text-sm
                 text-slate-500 dark:text-slate-400
             ">
-                Average response time over recent health checks
+                Latency over the latest 20 checks · green points are healthy, red points are failed
             </p>
 
             {chartData.length === 0 ? (
@@ -145,10 +151,16 @@ function ChartCard({ metrics }) {
                             dataKey="responseTime"
                             stroke="#2563eb"
                             strokeWidth={3}
-                            dot={{
-                                r: 3,
-                                fill: "#2563eb"
-                            }}
+                            dot={({ cx, cy, payload }) => (
+                                <circle
+                                    cx={cx}
+                                    cy={cy}
+                                    r={4}
+                                    fill={payload.success ? "#10b981" : "#ef4444"}
+                                    stroke="white"
+                                    strokeWidth={1.5}
+                                />
+                            )}
                             activeDot={{
                                 r: 6
                             }}
