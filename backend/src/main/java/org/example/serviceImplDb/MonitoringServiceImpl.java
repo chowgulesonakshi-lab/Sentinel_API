@@ -22,6 +22,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.example.service.rule.AlertRuleEngine;
 import org.example.service.anomaly.AnomalyDetectionResult;
 import org.example.service.anomaly.AnomalyDetectionService;
+import org.example.realtime.RealtimeEventService;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class MonitoringServiceImpl implements MonitoringService {
     private final AlertsService alertsService;
     private final AlertRuleEngine alertRuleEngine;
     private final AnomalyDetectionService anomalyDetectionService;
+    private final RealtimeEventService realtimeEventService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -47,25 +49,36 @@ public class MonitoringServiceImpl implements MonitoringService {
                                  MetricsService metricsService,
                                  AlertsService alertsService,
                                  AlertRuleEngine alertRuleEngine,
-                                 AnomalyDetectionService anomalyDetectionService) {
+                                 AnomalyDetectionService anomalyDetectionService,
+                                 RealtimeEventService realtimeEventService) {
         this.endpointRepository = endpointRepository;
         this.metricsService = metricsService;
         this.alertsService = alertsService;
         this.alertRuleEngine = alertRuleEngine;
         this.anomalyDetectionService = anomalyDetectionService;
+        this.realtimeEventService = realtimeEventService;
     }
 
     public MonitoringServiceImpl(EndpointRepository endpointRepository,
                                  MetricsService metricsService,
                                  AlertsService alertsService) {
-        this(endpointRepository, metricsService, alertsService, null);
+        this(endpointRepository, metricsService, alertsService, null, null, null);
     }
 
     public MonitoringServiceImpl(EndpointRepository endpointRepository,
                                  MetricsService metricsService,
                                  AlertsService alertsService,
                                  AlertRuleEngine alertRuleEngine) {
-        this(endpointRepository, metricsService, alertsService, alertRuleEngine, null);
+        this(endpointRepository, metricsService, alertsService, alertRuleEngine, null, null);
+    }
+
+    public MonitoringServiceImpl(EndpointRepository endpointRepository,
+                                 MetricsService metricsService,
+                                 AlertsService alertsService,
+                                 AlertRuleEngine alertRuleEngine,
+                                 AnomalyDetectionService anomalyDetectionService) {
+        this(endpointRepository, metricsService, alertsService, alertRuleEngine,
+                anomalyDetectionService, null);
     }
 
     @Override
@@ -197,7 +210,14 @@ public class MonitoringServiceImpl implements MonitoringService {
             metricsService.saveMetric(metrics);
 
             handleAlertsAndThresholds(endpoint, metrics);
-        }
+            if (realtimeEventService != null) {
+                try {
+                    realtimeEventService.publishMonitoringUpdate(endpoint, metrics);
+                } catch (RuntimeException exception) {
+                    log.warn("Unable to publish monitoring update for endpoint {}: {}",
+                            endpoint.getId(), exception.getMessage());
+                }
+            }
 
         return metrics;
     }
