@@ -21,6 +21,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
 @ExtendWith(MockitoExtension.class)
 public class MonitoringServiceTest {
 
@@ -98,9 +107,20 @@ public class MonitoringServiceTest {
 
     @Test
     void testSuccessResetsConsecutiveFailures() {
+        String targetUrl = "https://8.8.8.8/todos/1";
+        RestTemplateBuilder builder = new RestTemplateBuilder().additionalCustomizers(restTemplate -> {
+            MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+            server.expect(requestTo(targetUrl))
+                    .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+        });
+        monitoringService = new MonitoringServiceImpl(
+                endpointRepository, metricsService, alertsService,
+                null, null, null, null, builder
+        );
+
         Endpoint endpoint = new Endpoint();
         endpoint.setId(15L);
-        endpoint.setUrl("https://jsonplaceholder.typicode.com/todos/1");
+        endpoint.setUrl(targetUrl);
         endpoint.setMethod(Endpoint.HttpMethod.GET);
         endpoint.setTimeoutMillis(5000);
         endpoint.setEnabled(true);
@@ -121,9 +141,22 @@ public class MonitoringServiceTest {
     @Test
     void testCustomExpectedStatusCodeAcceptsMatchingCode() {
         // Test that expected status codes like "404" or "400-499" are treated as success if configured
+        String targetUrl = "https://8.8.8.8/expected-not-found";
+        RestTemplateBuilder builder = new RestTemplateBuilder().additionalCustomizers(restTemplate -> {
+            MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+            server.expect(requestTo(targetUrl))
+                    .andRespond(withStatus(HttpStatus.NOT_FOUND)
+                            .contentType(MediaType.TEXT_PLAIN)
+                            .body("Not found"));
+        });
+        monitoringService = new MonitoringServiceImpl(
+                endpointRepository, metricsService, alertsService,
+                null, null, null, null, builder
+        );
+
         Endpoint endpoint = new Endpoint();
         endpoint.setId(20L);
-        endpoint.setUrl("https://jsonplaceholder.typicode.com/invalid-path-that-returns-404");
+        endpoint.setUrl(targetUrl);
         endpoint.setMethod(Endpoint.HttpMethod.GET);
         endpoint.setTimeoutMillis(5000);
         endpoint.setEnabled(true);
