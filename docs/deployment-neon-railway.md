@@ -33,7 +33,10 @@ Set these values in the Railway service's Variables page. Use the Neon values fr
 | --- | --- |
 | `DB_URL` | `jdbc:postgresql://<NEON_POOLER_HOST>/<DATABASE>?sslmode=require` |
 | `DB_USERNAME` | Neon pooled-connection username |
-| `DB_PASSWORD` | Neon database password |
+| `DB_PASSWORD` | Neon pooled-connection password |
+| `FLYWAY_DB_URL` | Direct (unpooled) Neon JDBC URL for schema migrations |
+| `FLYWAY_DB_USERNAME` | Direct-connection username |
+| `FLYWAY_DB_PASSWORD` | Direct-connection password |
 | `JWT_SECRET` | A long, randomly generated secret; do not reuse a sample value |
 | `DB_POOL_MAX_SIZE` | `5` |
 | `DB_POOL_MIN_IDLE` | `1` |
@@ -52,7 +55,7 @@ The file `backend/.env.example` is a variable-name reference only. It intentiona
 
 The backend already uses Flyway migrations and Hibernate schema validation. On startup, Flyway applies pending migrations before the application begins serving traffic. Hibernate remains in `validate` mode; production startup does not use automatic schema creation.
 
-Use Neon pooled connections with the small Hikari pool above. Avoid configuring a large Hikari pool on top of Neon's own connection pooler.
+The application/Hikari datasource uses Neon's pooled endpoint. Flyway uses the separate direct endpoint through `FLYWAY_DB_URL`, `FLYWAY_DB_USERNAME`, and `FLYWAY_DB_PASSWORD`; this keeps schema migrations and their connection-level locking away from transaction pooling. The Flyway variables fall back to the normal `DB_*` values for local development. Use the small Hikari pool above and avoid configuring a large pool on top of Neon's own pooler.
 
 ## 5. Verify the deployment
 
