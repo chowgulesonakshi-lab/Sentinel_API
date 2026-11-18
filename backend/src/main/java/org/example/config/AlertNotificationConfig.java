@@ -22,7 +22,6 @@ public class AlertNotificationConfig {
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(5);
-        executor.initialize();
         return executor;
     }
 }
