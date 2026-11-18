@@ -541,15 +541,25 @@ When AI incident analysis is requested, the incident context includes dependency
 Backend tests:
 
 ```powershell
-.\gradlew.bat test
+cd backend
+.\gradlew.bat clean test
 ```
 
 Frontend production build:
 
 ```powershell
 cd frontend
+npm ci
 npm run build
 ```
+
+Container image build (from the backend directory):
+
+```powershell
+docker build -t sentinel-api-backend:local .
+```
+
+GitHub Actions runs backend tests, a backend Docker image build, and the frontend production build on branch pushes and pull requests.
 
 The backend test suite covers anomaly baselines, invalid and insufficient history, configurable sensitivity, duplicate anomaly alerts, anomaly resolution, dependency validation, circular dependency prevention, dependency graphs, and direct/indirect impact analysis.
 
@@ -582,7 +592,7 @@ The application uses Flyway migrations and `spring.jpa.hibernate.ddl-auto: valid
 
 ## 💡 Why Sentinel?
 
-* ✔ **Privacy-Focused AI**: AI incident analysis runs locally using Ollama.
+* ✔ **Configurable AI**: AI incident analysis uses local Ollama by default and supports a separately configured reachable provider.
 * ✔ **Automated Monitoring**: Scheduled background endpoint health checks.
 * ✔ **Comprehensive Visibility**: Projects, services, endpoints, metrics, and alerts in one platform.
 * ✔ **Performance Insights**: Response-time tracking and slow API detection.
