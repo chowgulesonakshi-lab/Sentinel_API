@@ -70,6 +70,16 @@ public class MonitoringServiceImpl implements MonitoringService {
     public MonitoringServiceImpl(EndpointRepository endpointRepository,
                                  MetricsService metricsService,
                                  AlertsService alertsService,
+                                 AlertRuleEngine alertRuleEngine,
+                                 AnomalyDetectionService anomalyDetectionService,
+                                 RealtimeEventService realtimeEventService) {
+        this(endpointRepository, metricsService, alertsService, alertRuleEngine,
+                anomalyDetectionService, realtimeEventService, null, null);
+    }
+
+    public MonitoringServiceImpl(EndpointRepository endpointRepository,
+                                 MetricsService metricsService,
+                                 AlertsService alertsService,
                                  RealtimeEventService realtimeEventService) {
         this(endpointRepository, metricsService, alertsService, null, null,
                 realtimeEventService, null, null);
