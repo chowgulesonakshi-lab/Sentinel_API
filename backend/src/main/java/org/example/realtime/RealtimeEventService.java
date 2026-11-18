@@ -38,7 +38,7 @@ public class RealtimeEventService {
             emitter.send(SseEmitter.event()
                     .name("connected")
                     .data(Map.of("connected", true)));
-        } catch (IOException exception) {
+        } catch (Exception exception) {
             cleanup.run();
             emitter.completeWithError(exception);
         }
@@ -78,7 +78,7 @@ public class RealtimeEventService {
                 emitter.send(SseEmitter.event()
                         .name("monitoring-update")
                         .data(payload));
-            } catch (IOException exception) {
+            } catch (Exception exception) {
                 removeEmitter(ownerKey, emitter);
                 emitter.completeWithError(exception);
             }
@@ -91,7 +91,7 @@ public class RealtimeEventService {
             for (SseEmitter emitter : emitters) {
                 try {
                     emitter.send(SseEmitter.event().comment("keep-alive"));
-                } catch (IOException exception) {
+                } catch (Exception exception) {
                     removeEmitter(ownerKey, emitter);
                     emitter.completeWithError(exception);
                 }
