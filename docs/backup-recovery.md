@@ -10,7 +10,7 @@ Sentinel uses Neon PostgreSQL in production. Use both Neon's point-in-time recov
 4. Confirm the target timestamp and branch carefully, then restore.
 5. After the restore, verify the application and inspect the automatically preserved pre-restore backup branch.
 
-Important: point-in-time restore rewinds the branch's database timeline; it is not a merge. It replaces the schema and data for all databases on that branch, temporarily interrupts connections, and removes writes after the chosen recovery point. Keep the configured history window long enough for the recovery objective. Neon's available history duration depends on the plan.
+Important: Neon point-in-time restore creates a restored branch at the selected timestamp/LSN. Depending on the Branch Restore flow you choose, Neon can move the production endpoint to the restored branch while preserving the pre-restore branch under a backup name. Writes after the selected recovery point are not present in the restored branch, and switching the endpoint can briefly interrupt connections. Verify the target branch, endpoint switch, and preserved original branch in the Console before confirming. Keep the configured history window long enough for the recovery objective; the available history duration depends on the plan.
 
 ## 2. Independent logical backup with pg_dump
 
