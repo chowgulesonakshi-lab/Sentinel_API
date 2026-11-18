@@ -1,45 +1,20 @@
-import axios from "axios";
-const API_URL = "http://localhost:8080";
-
-const getAuthHeader = () => {
-    const token = localStorage.getItem("token");
-    return {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
-};
+import api from "../api/axios";
 
 export const getProjects = async () => {
-    const response = await axios.get(
-        `${API_URL}/projects`,
-        getAuthHeader()
-    );
+    const response = await api.get("/projects");
     return response.data;
 };
 
 export const createProject = async (project) => {
-    const response = await axios.post(
-        `${API_URL}/projects`,
-        project,
-        getAuthHeader()
-    );
+    const response = await api.post("/projects", project);
     return response.data;
 };
 
 export const updateProject = async (id, project) => {
-    const response = await axios.put(
-        `${API_URL}/projects/${id}`,
-        project,
-        getAuthHeader()
-    );
-
+    const response = await api.put(`/projects/${id}`, project);
     return response.data;
 };
 
 export const deleteProject = async (id) => {
-    await axios.delete(
-        `${API_URL}/projects/${id}`,
-        getAuthHeader()
-    );
+    await api.delete(`/projects/${id}`);
 };
