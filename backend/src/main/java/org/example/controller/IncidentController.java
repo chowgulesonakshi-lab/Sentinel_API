@@ -1,7 +1,7 @@
 package org.example.controller;
 import jakarta.validation.Valid; import jakarta.validation.constraints.NotBlank; import lombok.Data; import lombok.RequiredArgsConstructor;
 import org.example.serviceImplDb.IncidentService; import org.springframework.http.HttpStatus; import org.springframework.web.bind.annotation.*; import java.util.*;
-@RestController @RequestMapping("/incidents") @RequiredArgsConstructor @CrossOrigin(origins="*")
+@RestController @RequestMapping("/incidents") @RequiredArgsConstructor
 public class IncidentController {
  private final IncidentService service;
  @PostMapping @ResponseStatus(HttpStatus.CREATED) public Map<String,Object> create(@RequestBody Map<String,Object> body){return service.create(body);}
