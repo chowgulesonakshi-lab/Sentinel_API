@@ -1,27 +1,25 @@
-import axios from "axios";
-
-const API = "http://localhost:8080/service-dependencies";
+import api from "../api/axios";
 
 export const getDependencyGraph = async (projectId) => {
-    const response = await axios.get(`${API}/project/${projectId}/graph`);
+    const response = await api.get(`/service-dependencies/project/${projectId}/graph`);
     return response.data;
 };
 
 export const getDependencies = async (projectId) => {
-    const response = await axios.get(`${API}/project/${projectId}`);
+    const response = await api.get(`/service-dependencies/project/${projectId}`);
     return response.data;
 };
 
 export const createDependency = async (dependency) => {
-    const response = await axios.post(API, dependency);
+    const response = await api.post("/service-dependencies", dependency);
     return response.data;
 };
 
 export const deleteDependency = async (id) => {
-    await axios.delete(`${API}/${id}`);
+    await api.delete(`/service-dependencies/${id}`);
 };
 
 export const getDependencyImpact = async (projectId, serviceId) => {
-    const response = await axios.get(`${API}/project/${projectId}/impact/${serviceId}`);
+    const response = await api.get(`/service-dependencies/project/${projectId}/impact/${serviceId}`);
     return response.data;
 };
