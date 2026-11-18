@@ -20,6 +20,7 @@ jobs:
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_SERVICE_ID: ${{ vars.RAILWAY_SERVICE_ID }}
+      RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT }}
     steps:
       - name: Checkout repository
@@ -31,11 +32,11 @@ jobs:
       - name: Install Railway CLI
         run: npm install --global @railway/cli@latest
       - name: Deploy backend to Railway
-        if: ${{ github.ref == 'refs/heads/main' && env.RAILWAY_TOKEN != '' && env.RAILWAY_SERVICE_ID != '' }}
-        run: railway up ./backend --service "$RAILWAY_SERVICE_ID" --environment "${RAILWAY_ENVIRONMENT:-production}" --path-as-root --ci --yes
+        if: ${{ github.ref == 'refs/heads/main' && env.RAILWAY_TOKEN != '' && env.RAILWAY_SERVICE_ID != '' && env.RAILWAY_PROJECT_ID != '' }}
+        run: railway up ./backend --project "$RAILWAY_PROJECT_ID" --service "$RAILWAY_SERVICE_ID" --environment "${RAILWAY_ENVIRONMENT:-production}" --path-as-root --ci --yes
       - name: Explain skipped Railway deployment
         if: ${{ github.ref != 'refs/heads/main' || env.RAILWAY_TOKEN == '' || env.RAILWAY_SERVICE_ID == '' }}
-        run: echo "::notice::Railway deployment skipped. Configure RAILWAY_TOKEN and RAILWAY_SERVICE_ID to enable it."
+        run: echo "::notice::Railway deployment skipped. Configure RAILWAY_TOKEN, RAILWAY_PROJECT_ID, and RAILWAY_SERVICE_ID to enable it."
 
   deploy-frontend:
     needs: deploy-backend
