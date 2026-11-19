@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import MetricsStatCard from "../components/MetricsComponents/MetricsStatCard";
 import EndpointPerformanceTable from "../components/MetricsComponents/EndpointPerformTable";
@@ -11,6 +11,7 @@ import {
     getDownCount,
     getSlowApisCount
 } from "../services/metricsService";
+import { subscribeToMonitoringEvents } from "../services/realtimeService";
 import {
     CircleCheck,
     CircleX,
@@ -25,34 +26,31 @@ function Metrics() {
     const [downCount, setDownCount] = useState(0);
     const [slowApis, setSlowApis] = useState(0);
 
-    useEffect(() => {
-        loadMetrics();
-        const interval = setInterval(
-            loadMetrics,
-            30000
-        );
-        return () => clearInterval(interval);
-    }, []);
-
-    const loadMetrics = async () => {
+    const loadMetrics = useCallback(async () => {
         try {
-            const latest = await getLatestMetrics();
-            const avg = await getAverageResponseTime();
-            const up = await getUpCount();
-            const down = await getDownCount();
-            const slow = await getSlowApisCount();
+            const [latest, avg, up, down, slow] = await Promise.all([
+                getLatestMetrics(),
+                getAverageResponseTime(),
+                getUpCount(),
+                getDownCount(),
+                getSlowApisCount(),
+            ]);
 
             setSlowApis(slow);
             setMetrics(latest);
             setAverageTime(avg);
             setUpCount(up);
             setDownCount(down);
-        } catch(error) {
-            console.error(
-                "Metrics loading error:",
-                error);
+        } catch (error) {
+            console.error("Metrics loading error:", error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        loadMetrics();
+        const unsubscribe = subscribeToMonitoringEvents(() => loadMetrics());
+        return unsubscribe;
+    }, [loadMetrics]);
 
     return (
         <MainLayout>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getAllAlerts, resolveAlert } from "../services/alertsService";
 import { getAlertRules, deleteAlertRule, toggleAlertRule } from "../services/alertRuleService";
+import { subscribeToMonitoringEvents } from "../services/realtimeService";
 import AlertRuleModal from "../components/AlertComponents/AlertRuleModal";
 import axios from "axios";
 import { Sparkles, CheckCircle2, AlertTriangle, Info, Sliders, Plus, Edit2, Trash2, Check, ShieldAlert } from "lucide-react";
@@ -22,6 +23,8 @@ function Alerts() {
     useEffect(() => {
         loadAlerts();
         loadRules();
+        const unsubscribe = subscribeToMonitoringEvents(() => loadAlerts());
+        return unsubscribe;
     }, []);
 
     const loadAlerts = async () => {

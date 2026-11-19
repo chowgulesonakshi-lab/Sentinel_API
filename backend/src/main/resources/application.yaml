@@ -53,13 +53,25 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:0.1}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 logging:
+  pattern:
+    level: "%5p [correlationId=%X{correlationId:-}, traceId=%X{traceId:-}, spanId=%X{spanId:-}]"
   level:
     org.hibernate.SQL: ${HIBERNATE_SQL_LOG_LEVEL:WARN}
 
 # Incident intelligence provider (Ollama by default; override through environment variables).
 sentinel:
+  notifications:
+    webhook:
+      enabled: ${ALERT_WEBHOOK_ENABLED:false}
+      url: ${ALERT_WEBHOOK_URL:}
   ai:
     enabled: ${SENTINEL_AI_ENABLED:true}
     base-url: ${SENTINEL_AI_BASE_URL:http://localhost:11434}
