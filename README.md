@@ -159,7 +159,7 @@ Modern applications rely heavily on interconnected microservices and APIs. A sin
 
 ```text
 Sentinel_API/
-├── src/                                  # Spring Boot Backend Codebase
+├── backend/                              # Spring Boot Backend Codebase
 │   ├── main/
 │   │   ├── java/org/example/
 │   │   │   ├── controller/               # REST API Controllers
@@ -172,7 +172,7 @@ Sentinel_API/
 │   │   │   └── serviceImplDb/            # Database Service Implementations & AI Engine
 │   │   └── resources/
 │   │       └── application.yaml          # Application Configuration
-├── sentinel-api-frontend/                # React Frontend Codebase
+├── frontend/                             # React Frontend Codebase
 │   ├── src/
 │   │   ├── components/                   # UI Components & Modules
 │   │   ├── pages/                        # Page Views
@@ -186,7 +186,7 @@ Sentinel_API/
 
 ## 📋 Prerequisites
 
-Before running Sentinel API, ensure you have installed:
+Before running Sentinel API locally, ensure you have installed:
 
 * **Java Development Kit (JDK 21 or later)**: `java -version`
 * **Node.js (v18+) & npm**: `node -v` and `npm -v`
@@ -532,7 +532,7 @@ The following distinction keeps the project claims aligned with the available ev
 
 The automated checks confirm the covered code paths; they do not by themselves prove production readiness or every runtime integration. In the current development environment, `npm run build` passes and targeted linting for the dependency UI passes. Repository-wide frontend lint still reports pre-existing issues in other modified files. A live PostgreSQL startup, authenticated browser walkthrough, and live Ollama request must be performed separately before describing those integrations as production-verified.
 
-The application uses the existing `spring.jpa.hibernate.ddl-auto: update` configuration to add anomaly and service-dependency columns/tables when the backend starts. Review this behavior before using automatic schema updates in production.
+The production configuration uses Flyway migrations with `spring.jpa.hibernate.ddl-auto: validate`; schema changes are managed through versioned migrations rather than Hibernate schema updates.
 
 ---
 
@@ -637,3 +637,64 @@ If you found Sentinel API useful, please consider giving this repository a ⭐ o
 Configure with `SENTINEL_AI_ENABLED`, `SENTINEL_AI_BASE_URL`, and `SENTINEL_AI_MODEL` (defaults: enabled, `http://localhost:11434`, `qwen2.5:7b`). AI output is advisory and must be verified against logs and telemetry.
 
 Database migrations: V9 creates incident and audit-event tables; V10 adds supporting indexes.
+
+
+---
+
+## Milestone 9 — Observability, Real-Time Updates & Integrations
+
+- Adds request correlation IDs to support tracing requests across application logs.
+- Adds distributed tracing configuration with configurable sampling and a Zipkin-compatible endpoint.
+- Exposes Spring Boot Actuator health, metrics, and Prometheus endpoints.
+- Adds real-time dashboard updates and service observability integrations.
+- Supports alert webhook configuration through environment variables.
+
+## Milestone 10 — Cloud Deployment (Render + Neon)
+
+The backend is deployed as a Docker-based Render Web Service and uses Neon PostgreSQL as its managed database.
+
+### Deployment
+
+- **Backend URL:** https://sentinel-api-aawq.onrender.com
+- **Health endpoint:** https://sentinel-api-aawq.onrender.com/actuator/health
+- **Hosting:** Render Web Service (Docker, Free instance)
+- **Database:** Neon PostgreSQL
+- **Container:** Multi-stage Docker build using Java 21
+- **Runtime port:** Uses Render's `PORT` environment variable (8080 by default when run outside Render)
+- **Health check:** `/actuator/health`
+
+The Render service is configured with the repository's `backend/` directory as its root and Docker build context, using `backend/Dockerfile`.
+
+### Database and migrations
+
+- Runtime database connections use the Neon pooled endpoint through HikariCP.
+- Flyway uses the direct Neon endpoint for schema migrations.
+- Database credentials and application secrets are configured in the hosting provider's environment settings; secret values are not stored in the repository.
+- The deployed logs confirmed successful database connectivity, Hikari pool startup, validation of all 10 migrations, and schema version 10 being up to date.
+- Hibernate uses schema validation; Flyway owns schema evolution.
+
+### Production environment variables
+
+Configure the following variables in the deployment environment. Supply actual credentials and URLs through the provider's secret/environment settings; do not commit secret values.
+
+| Variable | Purpose |
+| :--- | :--- |
+| `PORT` | HTTP port supplied by the hosting platform |
+| `DB_URL` | JDBC URL using the Neon pooled hostname |
+| `DB_USERNAME` | Neon database role |
+| `DB_PASSWORD` | Neon database role password |
+| `FLYWAY_DB_URL` | JDBC URL using the Neon direct (non-pooled) hostname |
+| `FLYWAY_DB_USERNAME` | Flyway database role |
+| `FLYWAY_DB_PASSWORD` | Flyway database password |
+| `DB_POOL_MAX_SIZE` | Maximum HikariCP pool size |
+| `DB_POOL_MIN_IDLE` | Minimum idle HikariCP connections |
+| `JWT_SECRET` | Secret used to sign JWTs |
+| `CORS_ALLOWED_ORIGINS` | Allowed frontend origins |
+| `TRACING_SAMPLING_PROBABILITY` | Trace sampling probability; set to `0` when no Zipkin collector is configured |
+| `SENTINEL_AI_ENABLED` | Enables or disables the AI provider |
+
+### Free-tier runtime note
+
+The Render Free instance can spin down after inactivity. The first request after an idle period may therefore take significantly longer while the service starts. Free instances have limited CPU and memory and are intended for demos and development rather than production workloads.
+
+AI incident analysis is disabled in this hosted configuration unless a reachable AI provider is configured. The local Ollama setup described above remains the development configuration.
