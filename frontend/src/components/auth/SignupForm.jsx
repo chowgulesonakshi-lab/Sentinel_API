@@ -32,6 +32,16 @@ function SignupForm({ setIsLogin }) {
             setMessage("Please complete all fields.");
             return;
         }
+        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payload.email)) {
+            setMessageType("error");
+            setMessage("Please enter a valid email address.");
+            return;
+        }
+        if (payload.password.length < 8) {
+            setMessageType("error");
+            setMessage("Password must be at least 8 characters long.");
+            return;
+        }
 
         setLoading(true);
         setMessage("");
@@ -75,7 +85,7 @@ function SignupForm({ setIsLogin }) {
                 Join Sentinel API today.
             </p>
 
-            <form onSubmit={handleSignup} noValidate={false}>
+            <form onSubmit={handleSignup} noValidate>
                 <label htmlFor="signup-name" className="block text-sm font-medium text-slate-700 mb-2">
                     Name
                 </label>
