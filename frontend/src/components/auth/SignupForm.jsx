@@ -32,7 +32,7 @@ function SignupForm({ setIsLogin }) {
             setMessage("Please complete all fields.");
             return;
         }
-        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payload.email)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
             setMessageType("error");
             setMessage("Please enter a valid email address.");
             return;
@@ -58,7 +58,7 @@ function SignupForm({ setIsLogin }) {
                 window.setTimeout(() => setIsLogin(true), 1400);
             } else {
                 setMessageType("error");
-                setMessage(resultMessage.replace(/^Error:\\s*/, "") || "We couldn't create your account. Please try again.");
+                setMessage(resultMessage.replace(/^Error:\s*/, "") || "We couldn't create your account. Please try again.");
             }
         } catch (error) {
             const serverMessage =
@@ -68,7 +68,7 @@ function SignupForm({ setIsLogin }) {
             setMessageType("error");
             setMessage(
                 serverMessage
-                    ? serverMessage.replace(/^Error:\\s*/, "")
+                    ? serverMessage.replace(/^Error:\s*/, "")
                     : "Unable to reach the server. Please check your connection and try again."
             );
         } finally {
